@@ -16,8 +16,6 @@
       background: #f3f4f6;
     }
 
-    /* SIDEBAR */
-
     .sidebar {
       width: 240px;
       background: #0f172a;
@@ -28,10 +26,7 @@
       gap: 8px;
     }
 
-    .sidebar h2 {
-      font-size: 18px;
-      margin: 0 0 16px;
-    }
+    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
 
     .nav-section-title {
       font-size: 11px;
@@ -50,13 +45,8 @@
       display: block;
     }
 
-    .nav-item.active {
-      background: #1d4ed8;
-    }
-
-    .nav-item:hover {
-      background: #111827;
-    }
+    .nav-item.active { background: #1d4ed8; }
+    .nav-item:hover { background: #111827; }
 
     .logout {
       margin-top: auto;
@@ -65,12 +55,7 @@
       cursor: pointer;
     }
 
-    /* MAIN */
-
-    .main {
-      flex: 1;
-      padding: 24px 32px;
-    }
+    .main { flex: 1; padding: 24px 32px; }
 
     .topbar {
       display: flex;
@@ -79,19 +64,9 @@
       margin-bottom: 24px;
     }
 
-    .topbar h1 {
-      margin: 0;
-      font-size: 22px;
-    }
-
-    .topbar small {
-      color: #6b7280;
-    }
-
-    .welcome {
-      font-size: 14px;
-      color: #374151;
-    }
+    .topbar h1 { margin: 0; font-size: 22px; }
+    .topbar small { color: #6b7280; }
+    .welcome { font-size: 14px; color: #374151; }
 
     .page-header {
       display: flex;
@@ -100,16 +75,8 @@
       margin-bottom: 16px;
     }
 
-    .page-header h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .page-header p {
-      margin: 4px 0 0;
-      font-size: 13px;
-      color: #6b7280;
-    }
+    .page-header h2 { margin: 0; font-size: 20px; }
+    .page-header p { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
 
     .btn-primary {
       padding: 8px 16px;
@@ -121,16 +88,13 @@
       font-size: 14px;
       cursor: pointer;
     }
-
-    .btn-primary:hover {
-      background: #1e40af;
-    }
+    .btn-primary:hover { background: #1e40af; }
 
     .card {
       background: #fff;
       border-radius: 12px;
       padding: 16px 18px;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
     }
 
     table {
@@ -152,12 +116,51 @@
       color: #6b7280;
     }
 
-    /* MODAL */
+    .badge-empty {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
 
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-small {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-small.edit {
+      border-color: #3b82f6;
+      color: #1d4ed8;
+    }
+
+    .btn-small.delete {
+      border-color: #f87171;
+      color: #b91c1c;
+    }
+
+    .lock-label {
+      font-size: 12px;
+      color: #16a34a;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* MODAL */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(15,23,42,0.55);
       display: none;
       align-items: center;
       justify-content: center;
@@ -170,7 +173,7 @@
       background: #ffffff;
       border-radius: 18px;
       padding: 24px 24px 20px;
-      box-shadow: 0 24px 50px rgba(15, 23, 42, 0.35);
+      box-shadow: 0 24px 50px rgba(15,23,42,0.35);
     }
 
     .modal-header {
@@ -180,10 +183,7 @@
       margin-bottom: 16px;
     }
 
-    .modal-header h3 {
-      margin: 0;
-      font-size: 18px;
-    }
+    .modal-header h3 { margin: 0; font-size: 18px; }
 
     .modal-close {
       border: none;
@@ -207,9 +207,7 @@
       font-size: 13px;
     }
 
-    .field label {
-      color: #374151;
-    }
+    .field label { color: #374151; }
 
     .field input,
     .field select,
@@ -221,9 +219,7 @@
       resize: vertical;
     }
 
-    .field textarea {
-      min-height: 70px;
-    }
+    .field textarea { min-height: 70px; }
 
     .field input:focus,
     .field select:focus,
@@ -248,60 +244,30 @@
       cursor: pointer;
       font-size: 14px;
     }
-
-    .badge-empty {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: 8px;
-    }
-
-    /* Action-knappar i tabellen */
-
-    .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .btn-small {
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .btn-small.edit {
-      border-color: #3b82f6;
-      color: #1d4ed8;
-    }
-
-    .btn-small.delete {
-      border-color: #f87171;
-      color: #b91c1c;
-    }
   </style>
 </head>
 <body>
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <h2>Admina Bas</h2>
 
-    <a href="dashboard.html" class="nav-item">Översikt</a>
-    <a href="tidrapporter.html" class="nav-item active">Tidrapporter</a>
-    <div class="nav-item">Planering</div>
-    <div class="nav-item">Avvikelser</div>
-    <div class="nav-item">Lönöversikt</div>
-    <div class="nav-item">Kontakter</div>
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item active">Tidrapporter</a>
+      <a href="#" class="nav-item">Planering</a>
+      <a href="#" class="nav-item">Avvikelser</a>
+      <a href="#" class="nav-item">Lönöversikt</a>
+      <a href="#" class="nav-item">Kontakter</a>
+    </div>
 
     <div class="nav-section-title">Administration</div>
-    <div class="nav-item">Admin Panel</div>
-    <div class="nav-item">Användare</div>
-    <div class="nav-item">Projekt</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
 
+  <!-- MAIN -->
   <main class="main">
     <div class="topbar">
       <div>
@@ -314,28 +280,29 @@
     <div class="page-header">
       <div>
         <h2>Tidrapporter</h2>
-        <p>Här registrerar användarna sina arbetspass. Alla tidrapporter visas nedan.</p>
+        <p>Här registrerar du dina arbetspass. Välj projekt och underprojekt som lagts upp av admin.</p>
       </div>
       <button class="btn-primary" id="newReportBtn">+ Ny tidrapport</button>
     </div>
 
     <div class="card">
-      <table id="reportsTable">
+      <table>
         <thead>
           <tr>
             <th>Datum</th>
+            <th>Projekt</th>
+            <th>Underprojekt</th>
             <th>Start</th>
             <th>Slut</th>
-            <th>Projekt</th>
             <th>Roll</th>
             <th>Beskrivning</th>
-            <th>Tim</th>
+            <th>Rast (min)</th>
+            <th>Restid (h)</th>
+            <th>Timmar</th>
             <th>Åtgärder</th>
           </tr>
         </thead>
-        <tbody id="reportsBody">
-          <!-- rader renderas via JS -->
-        </tbody>
+        <tbody id="reportsBody"></tbody>
       </table>
       <div id="emptyState" class="badge-empty">
         Inga tidrapporter ännu. Klicka på <strong>“Ny tidrapport”</strong> för att lägga till den första.
@@ -344,7 +311,6 @@
   </main>
 
   <!-- MODAL -->
-
   <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal">
       <div class="modal-header">
@@ -360,12 +326,8 @@
           </div>
 
           <div class="field">
-            <label for="rast">Rast</label>
-            <select id="rast">
-              <option>Ingen rast</option>
-              <option>30 min</option>
-              <option>60 min</option>
-            </select>
+            <label for="rast">Rast (minuter)</label>
+            <input type="number" id="rast" min="0" step="5" value="0" />
           </div>
 
           <div class="field">
@@ -379,23 +341,22 @@
           </div>
 
           <div class="field">
-            <label for="projekt">Projekt</label>
-            <select id="projekt" required>
-              <option value="">Välj projekt</option>
-              <option>Projekt A</option>
-              <option>Projekt B</option>
-              <option>Projekt C</option>
+            <label for="projektSelect">Projekt</label>
+            <select id="projektSelect">
+              <!-- fylls från localStorage -->
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="subprojektSelect">Underprojekt</label>
+            <select id="subprojektSelect">
+              <!-- fylls dynamiskt per projekt -->
             </select>
           </div>
 
           <div class="field">
             <label for="roll">Yrkesroll</label>
-            <select id="roll" required>
-              <option value="">Välj roll</option>
-              <option>Montör</option>
-              <option>Elektriker</option>
-              <option>Arbetsledare</option>
-            </select>
+            <input type="text" id="roll" placeholder="Roll..." />
           </div>
 
           <div class="field" style="grid-column: 1 / span 2;">
@@ -427,14 +388,16 @@
   </div>
 
   <script>
-    // enkel "auth" check
+    const STORAGE_KEY = "timeReports";
+    const PROJECTS_KEY = "projects";
+    const SUBPROJECTS_KEY = "subProjects";
+
     const token = localStorage.getItem("token");
     if (!token) {
       window.location.href = "login.html";
     }
 
-    const logoutBtn = document.getElementById("logoutBtn");
-    logoutBtn.addEventListener("click", () => {
+    document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });
@@ -448,18 +411,52 @@
     const emptyState = document.getElementById("emptyState");
     const modalTitle = document.getElementById("modalTitle");
 
-    // Håller alla rapporter i minnet + vilket index vi ev. redigerar
-    let reports = JSON.parse(localStorage.getItem("timeReports") || "[]");
-    let editingIndex = null; // null = ny rapport, annars index i arrayen
+    const projektSelect = document.getElementById("projektSelect");
+    const subprojektSelect = document.getElementById("subprojektSelect");
+
+    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+    let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+
+    let editingIndex = null;
+
+    reports.forEach(r => {
+      if (!r.status) r.status = "Ny";
+      if (r.restid === undefined) r.restid = 0;
+      if (r.rast === undefined) r.rast = 0;
+    });
+    saveReports();
+
+    function saveReports() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    }
+
+    function toggleEmptyState() {
+      emptyState.style.display = reports.length ? "none" : "block";
+    }
+
+    function calcBaseHours(start, end) {
+      if (!start || !end) return 0;
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+      let startMin = sh * 60 + sm;
+      let endMin = eh * 60 + em;
+      if (endMin <= startMin) endMin += 24 * 60;
+      return (endMin - startMin) / 60;
+    }
 
     function openModal(isEdit = false) {
+      reloadProjectDropdowns();
       modalBackdrop.style.display = "flex";
-      if (isEdit) {
-        modalTitle.textContent = "Redigera tidrapport";
-      } else {
+      if (!isEdit) {
         modalTitle.textContent = "Ny tidrapport";
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById("datum").value = today;
+        document.getElementById("rast").value = "0";
+        document.getElementById("restid").value = "0";
+        document.getElementById("traktamente").value = "Ingen";
+      } else {
+        modalTitle.textContent = "Redigera tidrapport";
       }
     }
 
@@ -470,83 +467,134 @@
       modalTitle.textContent = "Ny tidrapport";
     }
 
-    newReportBtn.addEventListener("click", () => {
-      openModal(false);
-    });
     closeModalBtn.addEventListener("click", closeModal);
     cancelBtn.addEventListener("click", closeModal);
-
     modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === modalBackdrop) {
-        closeModal();
-      }
+      if (e.target === modalBackdrop) closeModal();
     });
 
-    function calculateHours(start, end) {
-      if (!start || !end) return 0;
-      const [sh, sm] = start.split(":").map(Number);
-      const [eh, em] = end.split(":").map(Number);
-      const startMin = sh * 60 + sm;
-      const endMin = eh * 60 + em;
-      if (endMin <= startMin) return 0;
-      const diff = endMin - startMin;
-      return (diff / 60).toFixed(1);
+    newReportBtn.addEventListener("click", () => openModal(false));
+
+    function reloadProjectDropdowns(selectedProjectId = "", selectedSubId = "") {
+      projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+      subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+
+      projektSelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Välj projekt";
+      projektSelect.appendChild(defaultOpt);
+
+      projects
+        .filter(p => p.status === "aktiv")
+        .forEach((p) => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.name;
+          projektSelect.appendChild(opt);
+        });
+
+      if (selectedProjectId) {
+        projektSelect.value = selectedProjectId;
+      }
+
+      reloadSubDropdown(selectedProjectId || projektSelect.value, selectedSubId);
     }
 
-    function toggleEmptyState() {
-      emptyState.style.display = reports.length ? "none" : "block";
+    function reloadSubDropdown(projectId, selectedSubId = "") {
+      subprojektSelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Inget underprojekt";
+      subprojektSelect.appendChild(defaultOpt);
+
+      if (!projectId) return;
+
+      subProjects
+        .filter(sp => sp.projectId === projectId)
+        .forEach((sp) => {
+          const opt = document.createElement("option");
+          opt.value = sp.id;
+          opt.textContent = sp.name;
+          subprojektSelect.appendChild(opt);
+        });
+
+      if (selectedSubId) {
+        subprojektSelect.value = selectedSubId;
+      }
     }
 
-    function saveReportsToStorage() {
-      localStorage.setItem("timeReports", JSON.stringify(reports));
-    }
+    projektSelect.addEventListener("change", () => {
+      reloadSubDropdown(projektSelect.value);
+    });
 
-    function renderReports() {
+    function render() {
       reportsBody.innerHTML = "";
-      reports.forEach((report, index) => {
+
+      reports.forEach((r, index) => {
         const tr = document.createElement("tr");
-        tr.dataset.index = index.toString();
+        const timmar = parseFloat(r.timmar || "0") || 0;
+        const rast = Number(r.rast || 0);
+        const restid = Number(r.restid || 0);
+
+        const projectName = r.projectName || r.projekt || "-";
+        const subName = r.subProjectName || "";
+
         tr.innerHTML = `
-          <td>${report.datum}</td>
-          <td>${report.starttid}</td>
-          <td>${report.sluttid}</td>
-          <td>${report.projekt}</td>
-          <td>${report.roll}</td>
-          <td>${report.beskrivning}</td>
-          <td>${report.timmar}</td>
+          <td>${r.datum || "-"}</td>
+          <td>${projectName}</td>
+          <td>${subName || "-"}</td>
+          <td>${r.starttid || "-"}</td>
+          <td>${r.sluttid || "-"}</td>
+          <td>${r.roll || "-"}</td>
+          <td>${r.beskrivning || ""}</td>
+          <td>${rast}</td>
+          <td>${restid.toFixed(1)}</td>
+          <td>${timmar.toFixed(1)}</td>
           <td>
             <div class="actions">
-              <button type="button" class="btn-small edit">Redigera</button>
-              <button type="button" class="btn-small delete">Ta bort</button>
+              ${
+                r.status === "Attesterad"
+                  ? `<span class="lock-label">🔒 Låst (attesterad)</span>`
+                  : `
+                    <button type="button" class="btn-small edit">Redigera</button>
+                    <button type="button" class="btn-small delete">Ta bort</button>
+                  `
+              }
             </div>
           </td>
         `;
-        const editBtn = tr.querySelector(".btn-small.edit");
-        const deleteBtn = tr.querySelector(".btn-small.delete");
 
-        editBtn.addEventListener("click", () => {
-          editingIndex = index;
-          const r = reports[index];
-          document.getElementById("datum").value = r.datum;
-          document.getElementById("rast").value = r.rast || "Ingen rast";
-          document.getElementById("starttid").value = r.starttid;
-          document.getElementById("sluttid").value = r.sluttid;
-          document.getElementById("projekt").value = r.projekt === "-" ? "" : r.projekt;
-          document.getElementById("roll").value = r.roll === "-" ? "" : r.roll;
-          document.getElementById("beskrivning").value = r.beskrivning;
-          document.getElementById("traktamente").value = r.traktamente || "Ingen";
-          document.getElementById("restid").value = r.restid || "0";
-          openModal(true);
-        });
+        if (r.status !== "Attesterad") {
+          const editBtn = tr.querySelector(".btn-small.edit");
+          const deleteBtn = tr.querySelector(".btn-small.delete");
 
-        deleteBtn.addEventListener("click", () => {
-          if (confirm("Vill du ta bort den här tidrapporten?")) {
+          editBtn.addEventListener("click", () => {
+            editingIndex = index;
+
+            document.getElementById("datum").value = r.datum || "";
+            document.getElementById("rast").value = r.rast || 0;
+            document.getElementById("starttid").value = r.starttid || "";
+            document.getElementById("sluttid").value = r.sluttid || "";
+            document.getElementById("roll").value = r.roll || "";
+            document.getElementById("beskrivning").value = r.beskrivning || "";
+            document.getElementById("traktamente").value = r.traktamente || "Ingen";
+            document.getElementById("restid").value = r.restid || 0;
+
+            const projId = r.projectId || "";
+            const subId = r.subProjectId || "";
+
+            openModal(true);
+            reloadProjectDropdowns(projId, subId);
+          });
+
+          deleteBtn.addEventListener("click", () => {
+            if (!confirm("Vill du ta bort den här tidrapporten?")) return;
             reports.splice(index, 1);
-            saveReportsToStorage();
-            renderReports();
-            toggleEmptyState();
-          }
-        });
+            saveReports();
+            render();
+          });
+        }
 
         reportsBody.appendChild(tr);
       });
@@ -554,36 +602,72 @@
       toggleEmptyState();
     }
 
-    // Ladda initialt
-    renderReports();
+    render();
 
     reportForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const report = {
-        datum: document.getElementById("datum").value,
-        rast: document.getElementById("rast").value,
-        starttid: document.getElementById("starttid").value,
-        sluttid: document.getElementById("sluttid").value,
-        projekt: document.getElementById("projekt").value || "-",
-        roll: document.getElementById("roll").value || "-",
-        beskrivning: document.getElementById("beskrivning").value,
-        traktamente: document.getElementById("traktamente").value,
-        restid: document.getElementById("restid").value || "0",
-      };
+      const datum = document.getElementById("datum").value;
+      const rastMin = Number(document.getElementById("rast").value || 0);
+      const starttid = document.getElementById("starttid").value;
+      const sluttid = document.getElementById("sluttid").value;
+      const roll = document.getElementById("roll").value;
+      const beskrivning = document.getElementById("beskrivning").value;
+      const traktamente = document.getElementById("traktamente").value;
+      const restid = Number(document.getElementById("restid").value || 0);
 
-      report.timmar = calculateHours(report.starttid, report.sluttid);
+      const projectId = projektSelect.value || "";
+      const subProjectId = subprojektSelect.value || "";
 
-      if (editingIndex !== null) {
-        // uppdatera befintlig
-        reports[editingIndex] = report;
-      } else {
-        // ny rapport
-        reports.push(report);
+      const projectObj = projects.find(p => p.id === projectId);
+      const subObj = subProjects.find(sp => sp.id === subProjectId);
+
+      const projectName = projectObj ? projectObj.name : "";
+      const subProjectName = subObj ? subObj.name : "";
+
+      if (!datum || !starttid || !sluttid) {
+        alert("Fyll i datum, starttid och sluttid.");
+        return;
       }
 
-      saveReportsToStorage();
-      renderReports();
+      const baseHours = calcBaseHours(starttid, sluttid);
+      let hours = baseHours - rastMin / 60 + restid;
+      if (hours < 0) hours = 0;
+
+      const baseReport = {
+        datum,
+        rast: rastMin,
+        starttid,
+        sluttid,
+        roll: roll || "-",
+        beskrivning,
+        traktamente,
+        restid,
+        timmar: hours.toFixed(1),
+        projectId,
+        projectName: projectName || "-",
+        subProjectId,
+        subProjectName: subProjectName || "",
+        // behåller "projekt" för bakåtkomp
+        projekt: projectName || "-"
+      };
+
+      if (editingIndex !== null) {
+        const old = reports[editingIndex];
+        reports[editingIndex] = {
+          ...old,
+          ...baseReport,
+          status: old.status || "Ny",
+        };
+      } else {
+        reports.push({
+          ...baseReport,
+          status: "Ny",
+        });
+      }
+
+      saveReports();
+      render();
       closeModal();
     });
   </script>
