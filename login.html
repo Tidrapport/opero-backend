@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tidrapporteringssystem – Logga in</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f7fb;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .logo img {
+      max-height: 80px;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .title h1 {
+      margin: 4px 0;
+      font-size: 24px;
+    }
+
+    .title p {
+      margin: 0;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 24px 28px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+
+    .card small {
+      color: #6b7280;
+    }
+
+    .field-group {
+      margin-top: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb20;
+    }
+
+    .password-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .link {
+      font-size: 12px;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .link:hover {
+      text-decoration: underline;
+    }
+
+    .btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .error {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #b91c1c;
+    }
+
+    .success {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #15803d;
+    }
+
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="logo">
+      <!-- Byt ut src mot din riktiga logotyp om du vill -->
+      <!-- <img src="railwork-logo.png" alt="Rail Work AB"> -->
+    </div>
+
+    <div class="title">
+      <h1>Tidrapporteringssystem</h1>
+      <p>Logga in till Rail Work AB</p>
+    </div>
+
+    <div class="card">
+      <h2>Välkommen</h2>
+      <small>Logga in till Rail Work AB</small>
+
+      <form id="loginForm">
+        <div class="field-group">
+          <label for="email">E‑post</label>
+          <input id="email" type="email" placeholder="din@epost.se" required />
+        </div>
+
+        <div class="field-group">
+          <div class="password-row">
+            <label for="password">Lösenord</label>
+            <a href="#" class="link">Glömt lösenord?</a>
+          </div>
+          <input id="password" type="password" placeholder="••••••••" required />
+        </div>
+
+        <button class="btn" type="submit" id="loginBtn">Logga in</button>
+
+        <div id="message"></div>
+      </form>
+    </div>
+
+    <div class="footer">
+      Systemadministratör
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const btn = document.getElementById("loginBtn");
+    const msg = document.getElementById("message");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      msg.className = "";
+      btn.disabled = true;
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("http://localhost:3000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            // Backend förväntar sig "username", vi skickar e-post här
+            username: email,
+            password: password,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.textContent = data.error || "Något gick fel.";
+          msg.className = "error";
+        } else {
+          msg.textContent = "Inloggad!";
+          msg.className = "success";
+
+          // spara token för att skydda dashboarden
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+          }
+
+          // vänta en liten stund (0.7 sek) och gå till dashboard
+          setTimeout(() => {
+            window.location.href = "dashboard.html";
+          }, 700);
+        }
+      } catch (err) {
+        msg.textContent = "Kunde inte kontakta servern.";
+        msg.className = "error";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
