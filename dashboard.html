@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <title>Rail Work AB – Översikt</title>
   <style>
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -39,6 +43,9 @@
       border-radius: 8px;
       font-size: 14px;
       cursor: pointer;
+      color: #e5e7eb;
+      text-decoration: none;
+      display: block;
     }
 
     .nav-item.active {
@@ -134,33 +141,79 @@
       color: #4b5563;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #d1fae5;
-      color: #065f46;
-      font-size: 11px;
-      margin-left: 6px;
+    /* OB-fördelning layout */
+
+    .ob-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .ob-header-left h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .ob-header-left p {
+      margin: 0;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .ob-total-box {
+      text-align: right;
+    }
+
+    .ob-total-label {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .ob-total-hours {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .ob-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .ob-col-title {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .ob-col-hours {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .ob-col-hours.ob-colored {
+      color: #f97316; /* orange ton */
     }
   </style>
 </head>
 <body>
   <aside class="sidebar">
     <h2>Admina Bas</h2>
+
     <div class="nav-section">
-      <div class="nav-item active">Översikt</div>
-      <div class="nav-item">Tidrapporter</div>
-      <div class="nav-item">Planering</div>
-      <div class="nav-item">Avvikelser</div>
-      <div class="nav-item">Lönöversikt</div>
-      <div class="nav-item">Kontakter</div>
+      <a href="dashboard.html" class="nav-item active">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="#" class="nav-item">Planering</a>
+      <a href="#" class="nav-item">Avvikelser</a>
+      <a href="#" class="nav-item">Lönöversikt</a>
+      <a href="#" class="nav-item">Kontakter</a>
     </div>
 
     <div class="nav-section-title">Administration</div>
-    <div class="nav-item">Admin Panel</div>
-    <div class="nav-item">Användare</div>
-    <div class="nav-item">Projekt</div>
+    <a href="#" class="nav-item">Admin Panel</a>
+    <a href="#" class="nav-item">Användare</a>
+    <a href="#" class="nav-item">Projekt</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -179,33 +232,57 @@
     <div class="cards">
       <div class="card">
         <h3>Idag</h3>
-        <div class="value">0.0 h</div>
+        <div class="value" id="todayHours">0.0 h</div>
         <div class="sub">Registrerade timmar</div>
       </div>
       <div class="card">
         <h3>Denna vecka</h3>
-        <div class="value">0.0 h</div>
+        <div class="value" id="weekHours">0.0 h</div>
         <div class="sub">Registrerade timmar</div>
       </div>
       <div class="card">
         <h3>Denna månad</h3>
-        <div class="value">0.0 h</div>
+        <div class="value" id="monthHours">0.0 h</div>
         <div class="sub">Registrerade timmar</div>
       </div>
       <div class="card">
         <h3>Öppna avvikelser</h3>
-        <div class="value">0</div>
+        <div class="value" id="openIssues">0</div>
         <div class="sub">Att hantera</div>
       </div>
     </div>
 
+    <!-- OB-FÖRDELNING -->
     <section class="section">
-      <p class="section-title">
-        OB‑fördelning <span class="badge">0.0 h</span>
-      </p>
-      <p style="font-size:13px;color:#6b7280;margin:0;">
-        Dag, kväll, natt och helg visas här när tidrapporter finns.
-      </p>
+      <div class="ob-header">
+        <div class="ob-header-left">
+          <h3>OB‑fördelning</h3>
+          <p>Dag, kväll, natt och helg baserat på tidrapporter denna månad.</p>
+        </div>
+        <div class="ob-total-box">
+          <div class="ob-total-label">Totalt</div>
+          <div class="ob-total-hours" id="obTotalHours">0.0 h</div>
+        </div>
+      </div>
+
+      <div class="ob-grid">
+        <div class="ob-col">
+          <div class="ob-col-title">Dag (<span id="obDayPercent">0</span>%)</div>
+          <div class="ob-col-hours" id="obDayHours">0.0 h</div>
+        </div>
+        <div class="ob-col">
+          <div class="ob-col-title">Kväll (<span id="obEveningPercent">29</span>%)</div>
+          <div class="ob-col-hours ob-colored" id="obEveningHours">0.0 h</div>
+        </div>
+        <div class="ob-col">
+          <div class="ob-col-title">Natt (<span id="obNightPercent">63</span>%)</div>
+          <div class="ob-col-hours ob-colored" id="obNightHours">0.0 h</div>
+        </div>
+        <div class="ob-col">
+          <div class="ob-col-title">Helg (<span id="obWeekendPercent">113</span>%)</div>
+          <div class="ob-col-hours ob-colored" id="obWeekendHours">0.0 h</div>
+        </div>
+      </div>
     </section>
 
     <section class="section">
@@ -219,15 +296,13 @@
   </main>
 
   <script>
-    // Hämta ev. sparad token
+    // ==== LOGIN-KOLL ====
     const token = localStorage.getItem("token");
     const welcome = document.getElementById("welcomeText");
 
-    // Enkel check – om ingen token, skicka tillbaka till login
     if (!token) {
       window.location.href = "login.html";
     } else {
-      // Här kan vi senare dekoda token och visa riktigt namn
       welcome.textContent = "Välkommen, EdgarLukas";
     }
 
@@ -235,6 +310,159 @@
       localStorage.removeItem("token");
       window.location.href = "login.html";
     });
+
+    // ==== HJÄLPFUNKTIONER FÖR DATUM ====
+
+    function parseDate(dateStr) {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function diffInDays(d1, d2) {
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const t1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+      const t2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+      return Math.round((t2 - t1) / msPerDay);
+    }
+
+    // ==== OB-KATEGORIER ====
+
+    function getObCategory(dateObj) {
+      const dow = dateObj.getDay(); // 0 sön, 1 mån, ... 5 fre, 6 lör
+      const hour = dateObj.getHours();
+
+      // Helg: fredag 18:00 – måndag 06:00
+      if (
+        (dow === 5 && hour >= 18) || // fre kväll
+        dow === 6 ||                 // lör
+        dow === 0 ||                 // sön
+        (dow === 1 && hour < 6)      // måndag natt innan 06
+      ) {
+        return "helg";
+      }
+
+      // Natt: 21:00 – 06:00
+      if (hour >= 21 || hour < 6) {
+        return "natt";
+      }
+
+      // Kväll: 18:00 – 21:00
+      if (hour >= 18 && hour < 21) {
+        return "kväll";
+      }
+
+      // Dag: 06:00 – 18:00
+      return "dag";
+    }
+
+    function addObForReport(report, buckets) {
+      const dateStr = report.datum;
+      const start = report.starttid;
+      const end = report.sluttid;
+      if (!dateStr || !start || !end) return;
+
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+
+      let startDate = parseDate(dateStr);
+      startDate.setHours(sh, sm, 0, 0);
+
+      let endDate = parseDate(dateStr);
+      endDate.setHours(eh, em, 0, 0);
+
+      // Går över midnatt?
+      if (endDate <= startDate) {
+        endDate.setDate(endDate.getDate() + 1);
+      }
+
+      const stepMinutes = 15;
+      let cursor = new Date(startDate);
+
+      while (cursor < endDate) {
+        const cat = getObCategory(cursor);
+        buckets[cat] += stepMinutes / 60; // 0.25h
+        cursor = new Date(cursor.getTime() + stepMinutes * 60000);
+      }
+    }
+
+    // ==== HÄMTA RAPPORTER ====
+
+    const reports = JSON.parse(localStorage.getItem("timeReports") || "[]");
+
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+
+    let todayHours = 0;
+    let weekHours = 0;
+    let monthHours = 0;
+
+    const obBuckets = { dag: 0, kväll: 0, natt: 0, helg: 0 };
+
+    reports.forEach((rep) => {
+      if (!rep.datum) return;
+      const repDate = parseDate(rep.datum);
+      const hours = parseFloat(rep.timmar || "0") || 0;
+
+      if (rep.datum === todayStr) {
+        todayHours += hours;
+      }
+
+      const diff = diffInDays(repDate, today);
+      if (diff >= 0 && diff <= 6) {
+        weekHours += hours;
+      }
+
+      if (
+        repDate.getFullYear() === today.getFullYear() &&
+        repDate.getMonth() === today.getMonth()
+      ) {
+        monthHours += hours;
+        addObForReport(rep, obBuckets);
+      }
+    });
+
+    // ==== UPPDATERA TIM-KORT ====
+
+    document.getElementById("todayHours").textContent =
+      todayHours.toFixed(1) + " h";
+    document.getElementById("weekHours").textContent =
+      weekHours.toFixed(1) + " h";
+    document.getElementById("monthHours").textContent =
+      monthHours.toFixed(1) + " h";
+
+    // ==== UPPDATERA OB-TIMMAR ====
+
+    const obTotal =
+      obBuckets.dag + obBuckets.kväll + obBuckets.natt + obBuckets.helg;
+
+    document.getElementById("obTotalHours").textContent =
+      obTotal.toFixed(1) + " h";
+
+    document.getElementById("obDayHours").textContent =
+      obBuckets.dag.toFixed(1) + " h";
+    document.getElementById("obEveningHours").textContent =
+      obBuckets.kväll.toFixed(1) + " h";
+    document.getElementById("obNightHours").textContent =
+      obBuckets.natt.toFixed(1) + " h";
+    document.getElementById("obWeekendHours").textContent =
+      obBuckets.helg.toFixed(1) + " h";
+
+    // procent‑siffrorna är OB‑påslag (kan ändras om du vill)
+    const OB_EXTRA_PERCENT = {
+      dag: 0,
+      kväll: 29,
+      natt: 63,
+      helg: 113,
+    };
+
+    document.getElementById("obDayPercent").textContent =
+      OB_EXTRA_PERCENT.dag;
+    document.getElementById("obEveningPercent").textContent =
+      OB_EXTRA_PERCENT.kväll;
+    document.getElementById("obNightPercent").textContent =
+      OB_EXTRA_PERCENT.natt;
+    document.getElementById("obWeekendPercent").textContent =
+      OB_EXTRA_PERCENT.helg;
   </script>
 </body>
 </html>
