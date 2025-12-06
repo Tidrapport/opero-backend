@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Yrkesroller – Rail Work</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: #f3f4f6;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+
+    .nav-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-top: 12px;
+    }
+
+    .nav-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .nav-item.active { background: #1d4ed8; }
+    .nav-item:hover { background: #111827; }
+
+    .logout {
+      margin-top: auto;
+      font-size: 13px;
+      color: #f97373;
+      cursor: pointer;
+    }
+
+    .main { flex: 1; padding: 24px 32px; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .topbar h1 { margin: 0; font-size: 22px; }
+    .topbar small { color: #6b7280; }
+    .welcome { font-size: 14px; color: #374151; }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .page-header h2 { margin: 0; font-size: 20px; }
+    .page-header p { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .field label { color: #374151; }
+
+    .field input,
+    .field textarea,
+    .field select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    .field textarea { min-height: 60px; }
+
+    .btn-primary,
+    .btn-secondary {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #1d4ed8;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #1e40af; }
+
+    .btn-secondary {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      color: #111827;
+    }
+
+    .btn-secondary:hover {
+      background: #f3f4f6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    .badge-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-inactive {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-small.edit {
+      border-color: #3b82f6;
+      color: #1d4ed8;
+    }
+
+    .btn-small.delete {
+      border-color: #f87171;
+      color: #b91c1c;
+    }
+
+    @media (max-width: 1000px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2 id="sidebarCompanyName">Admina Bas</h2>
+
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="#" class="nav-item">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+      <a href="#" class="nav-item">Kontakter</a>
+    </div>
+
+    <div class="nav-section-title">Administration</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
+    <a href="job_roles.html" class="nav-item active">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+
+    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="companyTitle">Rail Work AB</h1>
+        <small>Yrkesroller – används i tidrapporter</small>
+      </div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <h2>Yrkesroller</h2>
+        <p>Lägg upp roller som banarbetare, tågvarnare, arbetsledare m.m.</p>
+      </div>
+    </div>
+
+    <div class="layout-grid">
+      <div class="card">
+        <div class="card-title" id="formTitle">Ny yrkesroll</div>
+        <form id="roleForm">
+          <input type="hidden" id="editRoleId" />
+
+          <div class="field">
+            <label for="roleName">Rollnamn</label>
+            <input id="roleName" placeholder="Ex: Banarbetare" required />
+          </div>
+
+          <div class="field">
+            <label for="roleDescription">Beskrivning</label>
+            <textarea id="roleDescription" placeholder="Valfri beskrivning"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="roleStatus">Status</label>
+            <select id="roleStatus">
+              <option value="aktiv">Aktiv</option>
+              <option value="inaktiv">Inaktiv</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="submit" class="btn-primary">Spara roll</button>
+            <button type="button" class="btn-secondary" id="resetBtn">Rensa</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Alla roller</div>
+        <table>
+          <thead>
+          <tr>
+            <th>Namn</th>
+            <th>Beskrivning</th>
+            <th>Status</th>
+            <th>Åtgärder</th>
+          </tr>
+          </thead>
+          <tbody id="rolesTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const ROLES_KEY = "jobRoles";
+
+    // Auth
+    const token = localStorage.getItem("token");
+    const companyId = localStorage.getItem("company_id");
+    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
+    const userName = localStorage.getItem("user_name") || "admin";
+
+    if (!companyId) {
+      window.location.href = "company-select.html";
+    } else if (!token) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("companyTitle").textContent = companyName;
+    document.getElementById("sidebarCompanyName").textContent = companyName;
+    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
+      window.location.href = "login.html";
+    });
+
+    let roles = JSON.parse(localStorage.getItem(ROLES_KEY) || "[]");
+
+    const roleForm = document.getElementById("roleForm");
+    const resetBtn = document.getElementById("resetBtn");
+    const rolesTableBody = document.getElementById("rolesTableBody");
+    const formTitle = document.getElementById("formTitle");
+
+    function saveRoles() {
+      localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+    }
+
+    function uuid() {
+      return "role_" + Math.random().toString(36).slice(2);
+    }
+
+    function renderTable() {
+      rolesTableBody.innerHTML = "";
+      roles.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.name}</td>
+          <td>${r.description || "-"}</td>
+          <td>
+            <span class="badge ${r.status === "aktiv" ? "badge-active" : "badge-inactive"}">
+              ${r.status === "aktiv" ? "Aktiv" : "Inaktiv"}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn-small edit">Redigera</button>
+              <button class="btn-small delete">Ta bort</button>
+            </div>
+          </td>
+        `;
+
+        const editBtn = tr.querySelector(".btn-small.edit");
+        const deleteBtn = tr.querySelector(".btn-small.delete");
+
+        editBtn.addEventListener("click", () => {
+          document.getElementById("editRoleId").value = r.id;
+          document.getElementById("roleName").value = r.name;
+          document.getElementById("roleDescription").value = r.description || "";
+          document.getElementById("roleStatus").value = r.status || "aktiv";
+          formTitle.textContent = "Redigera yrkesroll";
+        });
+
+        deleteBtn.addEventListener("click", () => {
+          if (!confirm("Ta bort yrkesrollen?")) return;
+          roles = roles.filter(rr => rr.id !== r.id);
+          saveRoles();
+          renderTable();
+        });
+
+        rolesTableBody.appendChild(tr);
+      });
+    }
+
+    roleForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("editRoleId").value;
+      const name = document.getElementById("roleName").value.trim();
+      const desc = document.getElementById("roleDescription").value.trim();
+      const status = document.getElementById("roleStatus").value;
+
+      if (!name) {
+        alert("Rollnamn krävs.");
+        return;
+      }
+
+      if (id) {
+        const idx = roles.findIndex(r => r.id === id);
+        if (idx !== -1) {
+          roles[idx] = { ...roles[idx], name, description: desc, status };
+        }
+      } else {
+        roles.push({
+          id: uuid(),
+          company_id: companyId,
+          name,
+          description: desc,
+          status,
+        });
+      }
+
+      saveRoles();
+      renderTable();
+      roleForm.reset();
+      document.getElementById("editRoleId").value = "";
+      formTitle.textContent = "Ny yrkesroll";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      roleForm.reset();
+      document.getElementById("editRoleId").value = "";
+      formTitle.textContent = "Ny yrkesroll";
+    });
+
+    renderTable();
+  </script>
+</body>
+</html>

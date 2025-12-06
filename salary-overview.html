@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lönöversikt – Rail Work</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: #f3f4f6;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+
+    .nav-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-top: 12px;
+    }
+
+    .nav-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .nav-item.active { background: #1d4ed8; }
+    .nav-item:hover { background: #111827; }
+
+    .logout {
+      margin-top: auto;
+      font-size: 13px;
+      color: #f97373;
+      cursor: pointer;
+    }
+
+    .main { flex: 1; padding: 24px 32px; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .topbar h1 { margin: 0; font-size: 22px; }
+    .topbar small { color: #6b7280; }
+    .welcome { font-size: 14px; color: #374151; }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .page-header h2 { margin: 0; font-size: 20px; }
+    .page-header p { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .field label { color: #374151; }
+
+    .field input,
+    .field select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb25;
+    }
+
+    .helper {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .summary-card {
+      border-radius: 12px;
+      background: #f9fafb;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .summary-value {
+      margin-top: 4px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .summary-sub {
+      margin-top: 2px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: right;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      text-align: left;
+    }
+
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .badge-month {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      color: #374151;
+      background: #f9fafb;
+    }
+
+    @media (max-width: 1100px) {
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2 id="sidebarCompanyName">Admina Bas</h2>
+
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="#" class="nav-item">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item active">Lönöversikt</a>
+      <a href="#" class="nav-item">Kontakter</a>
+    </div>
+
+    <div class="nav-section-title">Administration</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
+    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+
+    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="companyTitle">Rail Work AB</h1>
+        <small>Lön, skatt, semester och arbetsgivaravgifter – översikt per månad</small>
+      </div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <h2>Lönöversikt</h2>
+        <p>Beräkningar baserade på dina tidrapporter och inställningar nedan.</p>
+      </div>
+    </div>
+
+    <div class="layout-grid">
+      <!-- Vänster: inställningar -->
+      <div class="card">
+        <div class="card-title">Löneinställningar</div>
+
+        <div class="field">
+          <label for="hourlyWage">Timlön (SEK)</label>
+          <input type="number" id="hourlyWage" min="0" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="taxPercent">Kommunalskatt (%)</label>
+          <input type="number" id="taxPercent" min="0" max="60" step="0.5" />
+          <div class="helper">Använd din skattetabell, t.ex. 32.</div>
+        </div>
+
+        <div class="field">
+          <label for="vacationPercent">Semesterersättning (%)</label>
+          <input type="number" id="vacationPercent" min="0" max="20" step="0.5" />
+          <div class="helper">Standard i dokumentationen: 13%.</div>
+        </div>
+
+        <div class="field">
+          <label for="employerFeePercent">Arbetsgivaravgifter (%)</label>
+          <input type="number" id="employerFeePercent" min="0" max="40" step="0.1" />
+          <div class="helper">Standard: 31,42%.</div>
+        </div>
+
+        <div class="field">
+          <label for="stateTaxThreshold">Statlig skatt – brytpunkt (kr/mån)</label>
+          <input type="number" id="stateTaxThreshold" min="0" step="1000" />
+          <div class="helper">Exempel i dokumentationen: 51 000 kr/mån.</div>
+        </div>
+
+        <div class="field">
+          <label for="stateTaxPercent">Statlig skatt (%) på belopp över brytpunkt</label>
+          <input type="number" id="stateTaxPercent" min="0" max="30" step="1" />
+        </div>
+
+        <button class="btn-primary" id="saveSettingsBtn">Spara inställningar</button>
+        <div class="helper" style="margin-top:8px;">
+          Inställningarna sparas lokalt i din webbläsare och används vid beräkningarna.
+        </div>
+      </div>
+
+      <!-- Höger: summering -->
+      <div class="card">
+        <div class="card-title">Summering (vald månad)</div>
+
+        <div class="field">
+          <label for="monthSelect">Månad</label>
+          <select id="monthSelect"></select>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Arbetade timmar</div>
+            <div class="summary-value" id="summaryHours">0,0 h</div>
+            <div class="summary-sub">Från tidrapporter</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Bruttolön</div>
+            <div class="summary-value" id="summaryGross">0 kr</div>
+            <div class="summary-sub">Exkl. semesterersättning</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Skatt totalt</div>
+            <div class="summary-value" id="summaryTax">0 kr</div>
+            <div class="summary-sub">(kommunal + ev. statlig)</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Till utbetalning (ca)</div>
+            <div class="summary-value" id="summaryNet">0 kr</div>
+            <div class="summary-sub">Netto + semesterersättning</div>
+          </div>
+        </div>
+
+        <h4 style="margin-top:16px; margin-bottom:6px;">Detaljer per månad</h4>
+        <table>
+          <thead>
+          <tr>
+            <th>Månad</th>
+            <th>Timmar</th>
+            <th>Brutto</th>
+            <th>Kommunal</th>
+            <th>Statlig</th>
+            <th>Semester</th>
+            <th>Arb.giv.avg</th>
+          </tr>
+          </thead>
+          <tbody id="monthsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SETTINGS_KEY = "salarySettings";
+    const TIME_KEY = "timeReports";
+
+    // Auth
+    const token = localStorage.getItem("token");
+    const companyId = localStorage.getItem("company_id");
+    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
+    const userName = localStorage.getItem("user_name") || "användare";
+
+    if (!companyId) {
+      window.location.href = "company-select.html";
+    } else if (!token) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("companyTitle").textContent = companyName;
+    document.getElementById("sidebarCompanyName").textContent = companyName;
+    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
+      window.location.href = "login.html";
+    });
+
+    const hourlyWageInput = document.getElementById("hourlyWage");
+    const taxPercentInput = document.getElementById("taxPercent");
+    const vacationPercentInput = document.getElementById("vacationPercent");
+    const employerFeePercentInput = document.getElementById("employerFeePercent");
+    const stateTaxThresholdInput = document.getElementById("stateTaxThreshold");
+    const stateTaxPercentInput = document.getElementById("stateTaxPercent");
+    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+
+    const monthSelect = document.getElementById("monthSelect");
+    const summaryHours = document.getElementById("summaryHours");
+    const summaryGross = document.getElementById("summaryGross");
+    const summaryTax = document.getElementById("summaryTax");
+    const summaryNet = document.getElementById("summaryNet");
+    const monthsTableBody = document.getElementById("monthsTableBody");
+
+    function loadSettings() {
+      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+      const defaults = {
+        hourlyWage: 200,
+        taxPercent: 32,
+        vacationPercent: 13,
+        employerFeePercent: 31.42,
+        stateTaxThreshold: 51000,
+        stateTaxPercent: 20
+      };
+      const s = { ...defaults, ...(stored || {}) };
+
+      hourlyWageInput.value = s.hourlyWage;
+      taxPercentInput.value = s.taxPercent;
+      vacationPercentInput.value = s.vacationPercent;
+      employerFeePercentInput.value = s.employerFeePercent;
+      stateTaxThresholdInput.value = s.stateTaxThreshold;
+      stateTaxPercentInput.value = s.stateTaxPercent;
+    }
+
+    function saveSettings() {
+      const s = {
+        hourlyWage: Number(hourlyWageInput.value || 0),
+        taxPercent: Number(taxPercentInput.value || 0),
+        vacationPercent: Number(vacationPercentInput.value || 0),
+        employerFeePercent: Number(employerFeePercentInput.value || 0),
+        stateTaxThreshold: Number(stateTaxThresholdInput.value || 0),
+        stateTaxPercent: Number(stateTaxPercentInput.value || 0),
+      };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      alert("Inställningar sparade.");
+      computeAndRender();
+    }
+
+    saveSettingsBtn.addEventListener("click", saveSettings);
+
+    function parseDateStr(d) {
+      if (!d) return null;
+      const [y, m, day] = d.split("-").map(Number);
+      if (!y || !m) return null;
+      return { year: y, month: m, day: day || 1 };
+    }
+
+    function formatMonthKey(y, m) {
+      return y + "-" + String(m).padStart(2, "0");
+    }
+
+    function monthLabel(key) {
+      const [y, m] = key.split("-").map(Number);
+      const names = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+      return names[m - 1] + " " + y;
+    }
+
+    function groupReportsByMonth() {
+      const reports = JSON.parse(localStorage.getItem(TIME_KEY) || "[]");
+      const map = {};
+      reports.forEach(r => {
+        const pd = parseDateStr(r.datum);
+        if (!pd) return;
+        const key = formatMonthKey(pd.year, pd.month);
+        const hours = parseFloat(r.timmar || "0") || 0;
+        if (!map[key]) {
+          map[key] = { hours: 0 };
+        }
+        map[key].hours += hours;
+      });
+      return map;
+    }
+
+    function computeMonthValues(hours, settings) {
+      const gross = hours * settings.hourlyWage;
+      const kommunal = gross * (settings.taxPercent / 100);
+
+      // anta att detta är enda inkomsten (per månad)
+      const statligBase = Math.max(0, gross - settings.stateTaxThreshold);
+      const statlig = statligBase * (settings.stateTaxPercent / 100);
+
+      const semester = gross * (settings.vacationPercent / 100);
+      const arbetsgivaravg = gross * (settings.employerFeePercent / 100);
+
+      const totalTax = kommunal + statlig;
+      const net = gross - totalTax + semester;
+
+      return {
+        gross,
+        kommunal,
+        statlig,
+        semester,
+        arbetsgivaravg,
+        totalTax,
+        net,
+      };
+    }
+
+    function formatMoney(v) {
+      return Math.round(v).toLocaleString("sv-SE") + " kr";
+    }
+
+    function computeAndRender() {
+      const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null") || {
+        hourlyWage: Number(hourlyWageInput.value || 0),
+        taxPercent: Number(taxPercentInput.value || 0),
+        vacationPercent: Number(vacationPercentInput.value || 0),
+        employerFeePercent: Number(employerFeePercentInput.value || 0),
+        stateTaxThreshold: Number(stateTaxThresholdInput.value || 0),
+        stateTaxPercent: Number(stateTaxPercentInput.value || 0),
+      };
+
+      const grouped = groupReportsByMonth();
+      const keys = Object.keys(grouped).sort();
+
+      // fyll månadsväljaren
+      monthSelect.innerHTML = "";
+      keys.forEach(k => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = monthLabel(k);
+        monthSelect.appendChild(opt);
+      });
+
+      if (!keys.length) {
+        summaryHours.textContent = "0,0 h";
+        summaryGross.textContent = "0 kr";
+        summaryTax.textContent = "0 kr";
+        summaryNet.textContent = "0 kr";
+        monthsTableBody.innerHTML = "";
+        return;
+      }
+
+      // render tabell
+      monthsTableBody.innerHTML = "";
+      keys.forEach(k => {
+        const h = grouped[k].hours;
+        const vals = computeMonthValues(h, settings);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="badge-month">${monthLabel(k)}</span></td>
+          <td>${h.toFixed(1)} h</td>
+          <td>${formatMoney(vals.gross)}</td>
+          <td>${formatMoney(vals.kommunal)}</td>
+          <td>${formatMoney(vals.statlig)}</td>
+          <td>${formatMoney(vals.semester)}</td>
+          <td>${formatMoney(vals.arbetsgivaravg)}</td>
+        `;
+        monthsTableBody.appendChild(tr);
+      });
+
+      // aktiv månad i väljaren
+      if (!monthSelect.value && keys.length) {
+        monthSelect.value = keys[keys.length - 1]; // senaste
+      }
+
+      updateSummaryForSelected(monthSelect.value, grouped, settings);
+    }
+
+    function updateSummaryForSelected(key, grouped, settings) {
+      if (!key || !grouped[key]) return;
+      const h = grouped[key].hours;
+      const v = computeMonthValues(h, settings);
+      summaryHours.textContent = h.toFixed(1) + " h";
+      summaryGross.textContent = formatMoney(v.gross);
+      summaryTax.textContent = formatMoney(v.totalTax);
+      summaryNet.textContent = formatMoney(v.net);
+    }
+
+    monthSelect.addEventListener("change", () => {
+      const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null") || {};
+      const grouped = groupReportsByMonth();
+      updateSummaryForSelected(monthSelect.value, grouped, settings);
+    });
+
+    // init
+    loadSettings();
+    computeAndRender();
+  </script>
+</body>
+</html>
