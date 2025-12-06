@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Rail Work AB – Attestering</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * {
       box-sizing: border-box;
@@ -175,12 +176,51 @@
       color: #6b7280;
       margin-top: 8px;
     }
+
+    /* FILTERS */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .filters label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      color: #374151;
+    }
+
+    .filters select {
+      min-width: 150px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .filters button {
+      align-self: flex-end;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .filters button:hover {
+      background: #f3f4f6;
+    }
   </style>
 </head>
 <body>
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <h2>Admina Bas</h2>
+    <h2 id="sidebarCompanyName">Admina Bas</h2>
 
     <div class="nav-section">
       <a href="dashboard.html" class="nav-item">Översikt</a>
@@ -202,17 +242,17 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <h1>Rail Work AB</h1>
+        <h1 id="companyTitle">Rail Work AB</h1>
         <small>Attestering av tidrapporter</small>
       </div>
-      <div class="welcome">Välkommen, attest‑admin</div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
     </div>
 
     <div class="page-header">
       <div>
         <h2>Attestering av tidrapporter</h2>
         <p>
-          Granska, attestera, lås upp eller ta bort användarnas tidrapporter.
+          Välj projekt, underprojekt och användare för att attestera rätt rader.
           När en rad är attesterad låses den för användaren.
         </p>
       </div>
@@ -220,6 +260,41 @@
     </div>
 
     <div class="card">
+      <!-- FILTERS -->
+      <div class="filters">
+        <label>
+          Användare
+          <select id="filterUser">
+            <option value="">Alla användare</option>
+          </select>
+        </label>
+
+        <label>
+          Projekt
+          <select id="filterProject">
+            <option value="">Alla projekt</option>
+          </select>
+        </label>
+
+        <label>
+          Underprojekt
+          <select id="filterSubproject">
+            <option value="">Alla underprojekt</option>
+          </select>
+        </label>
+
+        <label>
+          Status
+          <select id="filterStatus">
+            <option value="">Alla</option>
+            <option value="Ny">Ny</option>
+            <option value="Attesterad">Attesterad</option>
+          </select>
+        </label>
+
+        <button id="clearFiltersBtn">Rensa filter</button>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -252,13 +327,27 @@
     const PROJECTS_KEY = "projects";
     const SUBPROJECTS_KEY = "subProjects";
 
+    // 🔐 Auth
     const token = localStorage.getItem("token");
-    if (!token) {
+    const companyId = localStorage.getItem("company_id");
+    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
+    const userName = localStorage.getItem("user_name") || "attest‑admin";
+
+    if (!companyId) {
+      window.location.href = "company-select.html";
+    } else if (!token) {
       window.location.href = "login.html";
     }
 
+    document.getElementById("companyTitle").textContent = companyName;
+    document.getElementById("sidebarCompanyName").textContent = companyName;
+    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
       window.location.href = "login.html";
     });
 
@@ -270,6 +359,7 @@
       if (!r.status) r.status = "Ny";
       if (!r.userName) r.userName = "";
       if (r.restid === undefined) r.restid = 0;
+      if (r.rast === undefined) r.rast = 0;
     });
     saveReports();
 
@@ -278,7 +368,8 @@
     }
 
     function parseDate(dateStr) {
-      const [y, m, d] = dateStr.split("-").map(Number);
+      const [y, m, d] = (dateStr || "").split("-").map(Number);
+      if (!y || !m || !d) return new Date();
       return new Date(y, m - 1, d);
     }
 
@@ -307,10 +398,10 @@
       const [eh, em] = report.sluttid.split(":").map(Number);
 
       let startDate = parseDate(report.datum);
-      startDate.setHours(sh, sm, 0, 0);
+      startDate.setHours(sh || 0, sm || 0, 0, 0);
 
       let endDate = parseDate(report.datum);
-      endDate.setHours(eh, em, 0, 0);
+      endDate.setHours(eh || 0, em || 0, 0, 0);
 
       if (endDate <= startDate) {
         endDate.setDate(endDate.getDate() + 1);
@@ -328,33 +419,114 @@
       return result;
     }
 
-    function toggleEmptyState() {
+    function toggleEmptyState(hasRows) {
       document.getElementById("emptyState").style.display =
-        reports.length ? "none" : "block";
+        hasRows ? "none" : "block";
     }
 
     const tbody = document.getElementById("reportsBody");
+    const filterUser = document.getElementById("filterUser");
+    const filterProject = document.getElementById("filterProject");
+    const filterSubproject = document.getElementById("filterSubproject");
+    const filterStatus = document.getElementById("filterStatus");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+    function buildFilterOptions() {
+      // Användare
+      const userSet = new Set();
+      reports.forEach(r => {
+        if (r.userName && r.userName.trim() !== "") {
+          userSet.add(r.userName.trim());
+        }
+      });
+      filterUser.innerHTML = '<option value="">Alla användare</option>';
+      [...userSet].sort().forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        filterUser.appendChild(opt);
+      });
+
+      // Projekt
+      projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+      subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+
+      const currentProjValue = filterProject.value;
+      const currentSubValue = filterSubproject.value;
+
+      filterProject.innerHTML = '<option value="">Alla projekt</option>';
+      projects.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        filterProject.appendChild(opt);
+      });
+      if (currentProjValue) filterProject.value = currentProjValue;
+
+      // Underprojekt
+      filterSubproject.innerHTML = '<option value="">Alla underprojekt</option>';
+      subProjects.forEach(sp => {
+        const opt = document.createElement("option");
+        opt.value = sp.id;
+        opt.textContent = sp.name;
+        filterSubproject.appendChild(opt);
+      });
+      if (currentSubValue) filterSubproject.value = currentSubValue;
+    }
+
+    function getProjectName(r) {
+      return (
+        r.projectName ||
+        (r.projectId && (projects.find(p => p.id === r.projectId) || {}).name) ||
+        r.projekt ||
+        "-"
+      );
+    }
+
+    function getSubProjectName(r) {
+      return (
+        r.subProjectName ||
+        (r.subProjectId && (subProjects.find(sp => sp.id === r.subProjectId) || {}).name) ||
+        ""
+      );
+    }
+
+    function getFilteredReports() {
+      const userVal = filterUser.value;
+      const projVal = filterProject.value;
+      const subVal = filterSubproject.value;
+      const statusVal = filterStatus.value;
+
+      return reports.filter(r => {
+        const matchesUser =
+          !userVal || (r.userName || "").trim() === userVal;
+        const matchesProject =
+          !projVal || (r.projectId === projVal);
+        const matchesSub =
+          !subVal || (r.subProjectId === subVal);
+        const matchesStatus =
+          !statusVal || r.status === statusVal;
+
+        return matchesUser && matchesProject && matchesSub && matchesStatus;
+      });
+    }
 
     function render() {
       tbody.innerHTML = "";
 
-      reports.forEach((r, index) => {
+      const filtered = getFilteredReports();
+
+      filtered.forEach((r) => {
+        const realIndex = reports.indexOf(r);
+
         const ob = splitObHours(r);
         const tr = document.createElement("tr");
 
         const totalHours = parseFloat(r.timmar || "0") || 0;
         const travel = parseFloat(r.restid || "0") || 0;
 
-        const projectName =
-          r.projectName ||
-          (r.projectId && (projects.find(p => p.id === r.projectId) || {}).name) ||
-          r.projekt ||
-          "-";
-
-        const subProjectName =
-          r.subProjectName ||
-          (r.subProjectId && (subProjects.find(sp => sp.id === r.subProjectId) || {}).name) ||
-          "";
+        const projectName = getProjectName(r);
+        const subProjectName = getSubProjectName(r);
 
         tr.innerHTML = `
           <td>${r.datum || "-"}</td>
@@ -390,16 +562,17 @@
 
         const nameInput = tr.querySelector(".name-input");
         nameInput.addEventListener("change", () => {
-          reports[index].userName = nameInput.value.trim();
+          reports[realIndex].userName = nameInput.value.trim();
           saveReports();
+          buildFilterOptions();
         });
 
         const attestBtn = tr.querySelector(".btn-small.attest");
         attestBtn.addEventListener("click", () => {
-          if (reports[index].status === "Attesterad") {
-            reports[index].status = "Ny";
+          if (reports[realIndex].status === "Attesterad") {
+            reports[realIndex].status = "Ny";
           } else {
-            reports[index].status = "Attesterad";
+            reports[realIndex].status = "Attesterad";
           }
           saveReports();
           render();
@@ -408,19 +581,33 @@
         const deleteBtn = tr.querySelector(".btn-small.delete");
         deleteBtn.addEventListener("click", () => {
           if (!confirm("Vill du ta bort den här tidrapporten?")) return;
-          reports.splice(index, 1);
+          reports.splice(realIndex, 1);
           saveReports();
+          buildFilterOptions();
           render();
         });
 
         tbody.appendChild(tr);
       });
 
-      toggleEmptyState();
+      toggleEmptyState(filtered.length > 0);
     }
 
-    render();
+    // Filter events
+    filterUser.addEventListener("change", render);
+    filterProject.addEventListener("change", render);
+    filterSubproject.addEventListener("change", render);
+    filterStatus.addEventListener("change", render);
 
+    clearFiltersBtn.addEventListener("click", () => {
+      filterUser.value = "";
+      filterProject.value = "";
+      filterSubproject.value = "";
+      filterStatus.value = "";
+      render();
+    });
+
+    // PDF export – alla attesterade (eller alla om inga attesterade)
     document.getElementById("downloadPdfBtn").addEventListener("click", () => {
       const attested = reports.filter((r) => r.status === "Attesterad");
       const list = attested.length ? attested : reports;
@@ -436,23 +623,15 @@
         const totalHours = parseFloat(r.timmar || "0") || 0;
         const travel = parseFloat(r.restid || "0") || 0;
 
-        const projectName =
-          r.projectName ||
-          (r.projectId && (projects.find(p => p.id === r.projectId) || {}).name) ||
-          r.projekt ||
-          "-";
-
-        const subProjectName =
-          r.subProjectName ||
-          (r.subProjectId && (subProjects.find(sp => sp.id === r.subProjectId) || {}).name) ||
-          "";
+        const projectName = getProjectName(r);
+        const subProjectName = getSubProjectName(r);
 
         rowsHtml += `
           <tr>
             <td>${r.datum || "-"}</td>
             <td>${(r.userName || "").replace(/</g, "&lt;")}</td>
             <td>${projectName.replace(/</g, "&lt;")}</td>
-            <td>${subProjectName.replace(/</g, "&lt;")}</td>
+            <td>${(subProjectName || "").replace(/</g, "&lt;")}</td>
             <td>${r.starttid || "-"}</td>
             <td>${r.sluttid || "-"}</td>
             <td>${totalHours.toFixed(1)}</td>
@@ -473,66 +652,66 @@
 
       const html = `
         <html lang="sv">
-          <head>
-            <meta charset="UTF-8" />
-            <title>Tidrapport – kundunderlag</title>
-            <style>
-              body {
-                font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-                font-size: 12px;
-                margin: 24px;
-              }
-              h1 {
-                font-size: 20px;
-                margin-bottom: 4px;
-              }
-              p {
-                margin: 0 0 12px;
-                color: #4b5563;
-              }
-              table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 8px;
-              }
-              th, td {
-                padding: 6px 8px;
-                border: 1px solid #d1d5db;
-                text-align: left;
-              }
-              th {
-                background: #f3f4f6;
-              }
-            </style>
-          </head>
-          <body>
-            <h1>Tidrapport – kundunderlag</h1>
-            <p>
-              Underlag med dag-, kväll-, natt- och helgtimmar per användare.
-              OB‑procent visas inte, endast timmar och restid.
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Datum</th>
-                  <th>Användare</th>
-                  <th>Projekt</th>
-                  <th>Underprojekt</th>
-                  <th>Start</th>
-                  <th>Slut</th>
-                  <th>Totalt (h)</th>
-                  <th>Dag</th>
-                  <th>Kväll</th>
-                  <th>Natt</th>
-                  <th>Helg</th>
-                  <th>Restid (h)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
-          </body>
+        <head>
+          <meta charset="UTF-8" />
+          <title>Tidrapport – kundunderlag</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              font-size: 12px;
+              margin: 24px;
+            }
+            h1 {
+              font-size: 20px;
+              margin-bottom: 4px;
+            }
+            p {
+              margin: 0 0 12px;
+              color: #4b5563;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 8px;
+            }
+            th, td {
+              padding: 6px 8px;
+              border: 1px solid #d1d5db;
+              text-align: left;
+            }
+            th {
+              background: #f3f4f6;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Tidrapport – kundunderlag</h1>
+          <p>
+            Underlag med dag-, kväll-, natt- och helgtimmar per användare.
+            OB‑procent visas inte, endast timmar och restid.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Användare</th>
+                <th>Projekt</th>
+                <th>Underprojekt</th>
+                <th>Start</th>
+                <th>Slut</th>
+                <th>Totalt (h)</th>
+                <th>Dag</th>
+                <th>Kväll</th>
+                <th>Natt</th>
+                <th>Helg</th>
+                <th>Restid (h)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </body>
         </html>
       `;
 
@@ -542,6 +721,10 @@
       win.focus();
       win.print();
     });
+
+    // Init
+    buildFilterOptions();
+    render();
   </script>
 </body>
 </html>

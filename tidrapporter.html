@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Rail Work AB – Tidrapporter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * {
       box-sizing: border-box;
@@ -249,7 +250,7 @@
 <body>
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <h2>Admina Bas</h2>
+    <h2 id="sidebarCompanyName">Admina Bas</h2>
 
     <div class="nav-section">
       <a href="dashboard.html" class="nav-item">Översikt</a>
@@ -271,10 +272,10 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <h1>Rail Work AB</h1>
+        <h1 id="companyTitle">Rail Work AB</h1>
         <small>Tidrapporter – registrera och hantera dina arbetstimmar</small>
       </div>
-      <div class="welcome">Välkommen, EdgarLukas</div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
     </div>
 
     <div class="page-header">
@@ -342,16 +343,12 @@
 
           <div class="field">
             <label for="projektSelect">Projekt</label>
-            <select id="projektSelect">
-              <!-- fylls från localStorage -->
-            </select>
+            <select id="projektSelect"></select>
           </div>
 
           <div class="field">
             <label for="subprojektSelect">Underprojekt</label>
-            <select id="subprojektSelect">
-              <!-- fylls dynamiskt per projekt -->
-            </select>
+            <select id="subprojektSelect"></select>
           </div>
 
           <div class="field">
@@ -392,13 +389,27 @@
     const PROJECTS_KEY = "projects";
     const SUBPROJECTS_KEY = "subProjects";
 
+    // 🔐 Auth
     const token = localStorage.getItem("token");
-    if (!token) {
+    const companyId = localStorage.getItem("company_id");
+    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
+    const userName = localStorage.getItem("user_name") || "användare";
+
+    if (!companyId) {
+      window.location.href = "company-select.html";
+    } else if (!token) {
       window.location.href = "login.html";
     }
 
+    document.getElementById("companyTitle").textContent = companyName;
+    document.getElementById("sidebarCompanyName").textContent = companyName;
+    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
       window.location.href = "login.html";
     });
 
@@ -559,7 +570,7 @@
                   : `
                     <button type="button" class="btn-small edit">Redigera</button>
                     <button type="button" class="btn-small delete">Ta bort</button>
-                  `
+                    `
               }
             </div>
           </td>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Rail Work AB – Översikt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
 
@@ -15,7 +16,7 @@
 
     /* SIDEBAR */
     .sidebar {
-      width: 240px;
+      width: 260px;
       background: #0f172a;
       color: #e5e7eb;
       padding: 16px 12px;
@@ -31,6 +32,7 @@
       text-transform: uppercase;
       opacity: 0.6;
       margin-top: 12px;
+      padding: 0 4px;
     }
 
     .nav-item {
@@ -40,7 +42,10 @@
       cursor: pointer;
       text-decoration: none;
       color: inherit;
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 2px 0;
     }
 
     .nav-item.active { background: #1d4ed8; }
@@ -51,6 +56,11 @@
       font-size: 13px;
       color: #f97373;
       cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    .logout:hover {
+      background: #111827;
     }
 
     /* MAIN */
@@ -167,13 +177,34 @@
       font-weight: 600;
     }
 
+    .ob-row-money {
+      font-size: 12px;
+      color: #f97316;
+      margin-top: 2px;
+    }
+
     .ob-col-hours.ob-colored { color: #f97316; }
+
+    @media (max-width: 900px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .ob-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .sidebar {
+        display: none; /* enkel mobilvariant */
+      }
+      .main {
+        padding: 16px;
+      }
+    }
   </style>
 </head>
 <body>
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <h2>Admina Bas</h2>
+    <h2 id="sidebarCompanyName">Admina Bas</h2>
 
     <div class="nav-section">
       <a href="dashboard.html" class="nav-item active">Översikt</a>
@@ -186,8 +217,7 @@
 
     <div class="nav-section-title">Administration</div>
     <a href="admin.html" class="nav-item">Attestering</a>
-    <a href="#" class="nav-item">Kunder</a>
-    <a href="#" class="nav-item">Projekt</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -196,10 +226,10 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <h1>Rail Work AB</h1>
+        <h1 id="companyTitle">Rail Work AB</h1>
         <small>Översikt – timmar och avvikelser</small>
       </div>
-      <div class="welcome" id="welcomeText">Välkommen, användare</div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
     </div>
 
     <div class="cards">
@@ -244,24 +274,28 @@
             Dag (<span id="obDayPercent">0</span>%)
           </div>
           <div class="ob-col-hours" id="obDayHours">0.0 h</div>
+          <div class="ob-row-money" id="obDayMoney">0.00 kr</div>
         </div>
         <div class="ob-col">
           <div class="ob-col-title">
-            Kväll (<span id="obEveningPercent">29</span>%)
+            Kväll (<span id="obEveningPercent">0</span>%)
           </div>
           <div class="ob-col-hours ob-colored" id="obEveningHours">0.0 h</div>
+          <div class="ob-row-money" id="obEveningMoney">0.00 kr</div>
         </div>
         <div class="ob-col">
           <div class="ob-col-title">
-            Natt (<span id="obNightPercent">63</span>%)
+            Natt (<span id="obNightPercent">0</span>%)
           </div>
           <div class="ob-col-hours ob-colored" id="obNightHours">0.0 h</div>
+          <div class="ob-row-money" id="obNightMoney">0.00 kr</div>
         </div>
         <div class="ob-col">
           <div class="ob-col-title">
-            Helg (<span id="obWeekendPercent">113</span>%)
+            Helg (<span id="obWeekendPercent">0</span>%)
           </div>
           <div class="ob-col-hours ob-colored" id="obWeekendHours">0.0 h</div>
+          <div class="ob-row-money" id="obWeekendMoney">0.00 kr</div>
         </div>
       </div>
     </section>
@@ -280,17 +314,27 @@
   <script>
     const STORAGE_KEY = "timeReports";
 
+    // 🔐 Auth-koll
     const token = localStorage.getItem("token");
-    const welcome = document.getElementById("welcomeText");
+    const companyId = localStorage.getItem("company_id");
+    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
+    const userName = localStorage.getItem("user_name") || "användare";
 
-    if (!token) {
+    if (!companyId) {
+      window.location.href = "company-select.html";
+    } else if (!token) {
       window.location.href = "login.html";
-    } else {
-      welcome.textContent = "Välkommen, EdgarLukas";
     }
+
+    document.getElementById("companyTitle").textContent = companyName;
+    document.getElementById("sidebarCompanyName").textContent = companyName;
+    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_role");
       window.location.href = "login.html";
     });
 
@@ -310,6 +354,7 @@
       const dow = dateObj.getDay(); // 0 sön, 1 mån, ... 6 lör
       const hour = dateObj.getHours();
 
+      // Helg: fre 18:00 -> mån 06:00
       if (
         (dow === 5 && hour >= 18) ||
         dow === 6 ||
@@ -366,8 +411,9 @@
 
       reports.forEach((rep) => {
         if (!rep.datum) return;
+
         const repDate = parseDate(rep.datum);
-        const hours = parseFloat(rep.timmar || "0") || 0;
+        const hours = parseFloat(rep.timmar || rep.total_hours || "0") || 0;
 
         if (rep.datum === todayStr) {
           todayHours += hours;
@@ -408,10 +454,43 @@
       document.getElementById("obWeekendHours").textContent =
         obBuckets.helg.toFixed(1) + " h";
 
-      document.getElementById("obDayPercent").textContent = 0;
-      document.getElementById("obEveningPercent").textContent = 29;
-      document.getElementById("obNightPercent").textContent = 63;
-      document.getElementById("obWeekendPercent").textContent = 113;
+      // OB-multiplikatorer – samma känsla som i Lovable (0%, 29%, 63%, 113%)
+      const obMultipliers = {
+        dag: 0.0,
+        kväll: 0.29,
+        natt: 0.63,
+        helg: 1.13,
+      };
+
+      // Exempel-timlön – i riktiga systemet hämtas detta från profile
+      const hourlyWage = 200;
+
+      const dayMoney = obBuckets.dag * obMultipliers.dag * hourlyWage;
+      const eveMoney = obBuckets.kväll * obMultipliers.kväll * hourlyWage;
+      const nightMoney = obBuckets.natt * obMultipliers.natt * hourlyWage;
+      const weekendMoney = obBuckets.helg * obMultipliers.helg * hourlyWage;
+
+      document.getElementById("obDayMoney").textContent =
+        dayMoney.toFixed(2) + " kr";
+      document.getElementById("obEveningMoney").textContent =
+        eveMoney.toFixed(2) + " kr";
+      document.getElementById("obNightMoney").textContent =
+        nightMoney.toFixed(2) + " kr";
+      document.getElementById("obWeekendMoney").textContent =
+        weekendMoney.toFixed(2) + " kr";
+
+      function pct(v) {
+        if (!obTotal) return 0;
+        return Math.round((v / obTotal) * 100);
+      }
+
+      document.getElementById("obDayPercent").textContent = pct(obBuckets.dag);
+      document.getElementById("obEveningPercent").textContent = pct(obBuckets.kväll);
+      document.getElementById("obNightPercent").textContent = pct(obBuckets.natt);
+      document.getElementById("obWeekendPercent").textContent = pct(obBuckets.helg);
+
+      // TODO: öppna avvikelser när du bygger deviations
+      document.getElementById("openIssues").textContent = "0";
     }
 
     updateDashboard();

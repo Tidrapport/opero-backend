@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Tidrapporteringssystem – Logga in</title>
+  <title>Logga in – Tidrapporteringssystem</title>
   <style>
     * {
       box-sizing: border-box;
@@ -15,227 +15,240 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #f5f7fb;
+      background: #f3f4f6;
     }
 
-    .page {
+    .card {
       width: 100%;
-      max-width: 480px;
-      padding: 24px;
+      max-width: 520px;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 32px 32px 28px;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+      text-align: left;
     }
 
     .logo {
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .logo img {
-      max-height: 80px;
+      max-height: 60px;
     }
 
-    .title {
+    .system-title {
       text-align: center;
       margin-bottom: 24px;
     }
 
-    .title h1 {
-      margin: 4px 0;
-      font-size: 24px;
+    .system-title h1 {
+      margin: 8px 0 0;
+      font-size: 22px;
     }
 
-    .title p {
-      margin: 0;
-      color: #555;
-      font-size: 14px;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px 24px 28px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      margin-bottom: 4px;
-      font-size: 18px;
-    }
-
-    .card small {
+    .system-title p {
+      margin: 4px 0 0;
+      font-size: 13px;
       color: #6b7280;
     }
 
-    .field-group {
-      margin-top: 16px;
+    .welcome-title {
+      font-size: 18px;
+      margin: 0 0 4px;
+    }
+
+    .welcome-sub {
+      margin: 0 0 18px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .company-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .company-bar span {
+      display: block;
+    }
+
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: #1d4ed8;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
     }
 
     label {
       display: block;
-      font-size: 13px;
       margin-bottom: 4px;
+      font-size: 13px;
       color: #374151;
     }
 
-    input {
+    .field {
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
       width: 100%;
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #d1d5db;
       font-size: 14px;
     }
 
-    input:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px #2563eb20;
-    }
-
-    .password-row {
+    .field-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .link {
+    .forgot-link {
       font-size: 12px;
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    .link:hover {
-      text-decoration: underline;
-    }
-
-    .btn {
-      margin-top: 20px;
-      width: 100%;
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: none;
-      background: #1d4ed8;
-      color: #fff;
-      font-weight: 600;
-      font-size: 15px;
+      color: #1d4ed8;
       cursor: pointer;
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: default;
-    }
-
-    .error {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #b91c1c;
-    }
-
-    .success {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #15803d;
+    .btn-primary {
+      width: 100%;
+      margin-top: 8px;
+      padding: 11px 18px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(to right, #1d4ed8, #1e40af);
+      color: white;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
     }
 
     .footer {
-      margin-top: 16px;
       text-align: center;
-      font-size: 12px;
+      margin-top: 16px;
+      font-size: 11px;
       color: #9ca3af;
     }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="card">
     <div class="logo">
-      <!-- Byt ut src mot din riktiga logotyp om du vill -->
-      <!-- <img src="railwork-logo.png" alt="Rail Work AB"> -->
+      <!-- statisk logga, byt till riktig bild om du vill -->
+      <!-- <img src="rail-work-logo.png" alt="Rail Work AB" /> -->
     </div>
 
-    <div class="title">
+    <div class="system-title">
       <h1>Tidrapporteringssystem</h1>
-      <p>Logga in till Rail Work AB</p>
+      <p id="loginSubtitle">Logga in</p>
     </div>
 
-    <div class="card">
-      <h2>Välkommen</h2>
-      <small>Logga in till Rail Work AB</small>
+    <h2 class="welcome-title">Välkommen</h2>
+    <p class="welcome-sub" id="welcomeText">Logga in till valt företag</p>
 
-      <form id="loginForm">
-        <div class="field-group">
-          <label for="email">E‑post</label>
-          <input id="email" type="email" placeholder="din@epost.se" required />
+    <div class="company-bar">
+      <div>
+        <span style="font-size:11px; color:#6b7280;">Inloggning till</span>
+        <span id="companyDisplay" style="font-weight:500;">-</span>
+      </div>
+      <button class="btn-link" id="changeCompanyBtn">Byt företag</button>
+    </div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="email">E‑post</label>
+        <input type="email" id="email" placeholder="din@epost.se" required />
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <label for="password">Lösenord</label>
+          <span class="forgot-link" id="forgotPasswordLink">Glömt lösenord?</span>
         </div>
+        <input type="password" id="password" required />
+      </div>
 
-        <div class="field-group">
-          <div class="password-row">
-            <label for="password">Lösenord</label>
-            <a href="#" class="link">Glömt lösenord?</a>
-          </div>
-          <input id="password" type="password" placeholder="••••••••" required />
-        </div>
+      <button type="submit" class="btn-primary">Logga in</button>
+    </form>
 
-        <button class="btn" type="submit" id="loginBtn">Logga in</button>
-
-        <div id="message"></div>
-      </form>
-    </div>
-
-    <div class="footer">
-      Systemadministratör
-    </div>
+    <div class="footer">Systemadministratör</div>
   </div>
 
   <script>
-    const form = document.getElementById("loginForm");
-    const btn = document.getElementById("loginBtn");
-    const msg = document.getElementById("message");
+    // Läs valt företag
+    const companyName = localStorage.getItem("company_name");
+    const companyCode = localStorage.getItem("company_code");
+    const companyId = localStorage.getItem("company_id");
 
-    form.addEventListener("submit", async (e) => {
+    if (!companyId) {
+      // Om inget företag valt → tillbaka till företagssidan
+      window.location.href = "company-select.html";
+    }
+
+    const companyDisplay = document.getElementById("companyDisplay");
+    const loginSubtitle = document.getElementById("loginSubtitle");
+    const welcomeText = document.getElementById("welcomeText");
+
+    companyDisplay.textContent = companyName || "-";
+    loginSubtitle.textContent = companyName
+      ? `Logga in till ${companyName}`
+      : "Logga in";
+    welcomeText.textContent = companyName
+      ? `Logga in till ${companyName}`
+      : "Logga in till valt företag";
+
+    // Byt företag
+    document.getElementById("changeCompanyBtn").addEventListener("click", () => {
+      localStorage.removeItem("company_id");
+      localStorage.removeItem("company_name");
+      localStorage.removeItem("company_code");
+      localStorage.removeItem("company_expire");
+      window.location.href = "company-select.html";
+    });
+
+    // Glömt lösenord (placeholder)
+    document.getElementById("forgotPasswordLink").addEventListener("click", () => {
+      alert("I den riktiga versionen skickas en återställningslänk via e‑post.\nHär i prototypen är detta bara en knapp.");
+    });
+
+    // Simulerad login
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      msg.textContent = "";
-      msg.className = "";
-      btn.disabled = true;
 
       const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+      const password = document.getElementById("password").value.trim();
 
-      try {
-        const res = await fetch("http://localhost:3000/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            // Backend förväntar sig "username", vi skickar e-post här
-            username: email,
-            password: password,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          msg.textContent = data.error || "Något gick fel.";
-          msg.className = "error";
-        } else {
-          msg.textContent = "Inloggad!";
-          msg.className = "success";
-
-          // spara token för att skydda dashboarden
-          if (data.token) {
-            localStorage.setItem("token", data.token);
-          }
-
-          // vänta en liten stund (0.7 sek) och gå till dashboard
-          setTimeout(() => {
-            window.location.href = "dashboard.html";
-          }, 700);
-        }
-      } catch (err) {
-        msg.textContent = "Kunde inte kontakta servern.";
-        msg.className = "error";
-      } finally {
-        btn.disabled = false;
+      if (!email || !password) {
+        alert("Fyll i e‑post och lösenord.");
+        return;
       }
+
+      // Här skulle Supabase Auth anropas i skarpa systemet.
+      // Vi simulerar inloggning med localStorage.
+      const userId = crypto.randomUUID();
+      const userName = email.split("@")[0];
+
+      localStorage.setItem("user_id", userId);
+      localStorage.setItem("user_email", email);
+      localStorage.setItem("user_name", userName);
+      localStorage.setItem("token", "SESSION_" + Date.now());
+
+      // I skarpa systemet används profilens roll.
+      // Här kan du sätta admin/user manuellt om du vill:
+      // localStorage.setItem("user_role", "admin");
+
+      window.location.href = "dashboard.html";
     });
   </script>
 </body>
