@@ -215,108 +215,109 @@
   </style>
 </head>
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2 id="sidebarCompanyName">Admina Bas</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h2>Admina Bas</h2>
 
-    <div class="nav-section">
-      <a href="dashboard.html" class="nav-item">Översikt</a>
-      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-      <a href="#" class="nav-item">Planering</a>
-      <a href="deviations.html" class="nav-item active">Avvikelser</a>
-      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
-      <a href="#" class="nav-item">Kontakter</a>
+  <div class="nav-section">
+    <a href="dashboard.html" class="nav-item">Översikt</a>
+    <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+    <a href="planning.html" class="nav-item">Planering</a>
+    <a href="deviations.html" class="nav-item active">Avvikelser</a>
+    <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+    <a href="contacts.html" class="nav-item">Kontakter</a>
+  </div>
+
+  <div class="nav-section-title admin-only">Administration</div>
+  <a href="admin.html" class="nav-item admin-only">Attestering</a>
+  <a href="projects.html" class="nav-item admin-only">Projekt</a>
+  <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+  <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+  <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1 id="companyTitle">Rail Work AB</h1>
+      <small>Rapportera avvikelser med text och bild</small>
+    </div>
+    <div class="welcome" id="welcomeText">Välkommen</div>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h2>Avvikelse­rapportering</h2>
+      <p>Dokumentera risker, fel och tillbud direkt från fältet.</p>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <!-- Formulär -->
+    <div class="card">
+      <div class="card-title">Ny avvikelse</div>
+
+      <form id="deviationForm">
+        <div class="field">
+          <label for="devDate">Datum</label>
+          <input type="date" id="devDate" required />
+        </div>
+
+        <div class="field">
+          <label for="devTitle">Rubrik</label>
+          <input id="devTitle" placeholder="Kort rubrik, t.ex. 'Felplacerat material på spår'" required />
+        </div>
+
+        <div class="field">
+          <label for="devSeverity">Allvarlighetsgrad</label>
+          <select id="devSeverity">
+            <option value="low">Låg</option>
+            <option value="medium">Medel</option>
+            <option value="high">Hög</option>
+            <option value="critical">Kritisk</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="devStatus">Status</label>
+          <select id="devStatus">
+            <option value="open">Öppen</option>
+            <option value="in_progress">Pågår</option>
+            <option value="resolved">Åtgärdad</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="devDescription">Beskrivning</label>
+          <textarea id="devDescription" placeholder="Beskriv vad som hänt, risker och ev. vidtagna åtgärder" required></textarea>
+        </div>
+
+        <div class="field">
+          <label for="devImage">Bild (mockad storage)</label>
+          <input type="file" id="devImage" accept="image/*" />
+          <div class="helper">
+            Bilden sparas som liten förhandsvisning i din webbläsare (ingen riktig filuppladdning i denna demo).
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Förhandsvisning</label>
+          <img id="devPreview" class="img-thumb" style="display:none;" alt="Förhandsvisning" />
+        </div>
+
+        <button type="submit" class="btn-primary">Spara avvikelse</button>
+      </form>
     </div>
 
-    <div class="nav-section-title">Administration</div>
-    <a href="admin.html" class="nav-item">Attestering</a>
-    <a href="projects.html" class="nav-item">Projekt</a>
-    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
-
-    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <h1 id="companyTitle">Rail Work AB</h1>
-        <small>Rapportera avvikelser med text och bild</small>
-      </div>
-      <div class="welcome" id="welcomeText">Välkommen</div>
-    </div>
-
-    <div class="page-header">
-      <div>
-        <h2>Avvikelse­rapportering</h2>
-        <p>Dokumentera risker, fel och tillbud direkt från fältet.</p>
-      </div>
-    </div>
-
-    <div class="layout-grid">
-      <!-- Formulär -->
-      <div class="card">
-        <div class="card-title">Ny avvikelse</div>
-
-        <form id="deviationForm">
-          <div class="field">
-            <label for="devDate">Datum</label>
-            <input type="date" id="devDate" required />
-          </div>
-
-          <div class="field">
-            <label for="devTitle">Rubrik</label>
-            <input id="devTitle" placeholder="Kort rubrik, t.ex. 'Felplacerat material på spår'" required />
-          </div>
-
-          <div class="field">
-            <label for="devSeverity">Allvarlighetsgrad</label>
-            <select id="devSeverity">
-              <option value="low">Låg</option>
-              <option value="medium">Medel</option>
-              <option value="high">Hög</option>
-              <option value="critical">Kritisk</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="devStatus">Status</label>
-            <select id="devStatus">
-              <option value="open">Öppen</option>
-              <option value="in_progress">Pågår</option>
-              <option value="resolved">Åtgärdad</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="devDescription">Beskrivning</label>
-            <textarea id="devDescription" placeholder="Beskriv vad som hänt, risker och ev. vidtagna åtgärder" required></textarea>
-          </div>
-
-          <div class="field">
-            <label for="devImage">Bild (mockad storage)</label>
-            <input type="file" id="devImage" accept="image/*" />
-            <div class="helper">
-              Bilden sparas som liten förhandsvisning i din webbläsare (ingen riktig filuppladdning i denna demo).
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Förhandsvisning</label>
-            <img id="devPreview" class="img-thumb" style="display:none;" alt="Förhandsvisning" />
-          </div>
-
-          <button type="submit" class="btn-primary">Spara avvikelse</button>
-        </form>
-      </div>
-
-      <!-- Lista -->
-      <div class="card">
-        <div class="card-title">Mina avvikelser</div>
-        <table>
-          <thead>
+    <!-- Lista -->
+    <div class="card">
+      <div class="card-title">Mina avvikelser</div>
+      <table>
+        <thead>
           <tr>
             <th>Datum</th>
             <th>Rubrik</th>
@@ -324,153 +325,165 @@
             <th>Status</th>
             <th>Bild</th>
           </tr>
-          </thead>
-          <tbody id="devTableBody"></tbody>
-        </table>
-        <div class="helper" style="margin-top:8px;">
-          Admin kommer senare kunna se alla avvikelser i en separat adminvy.
-        </div>
+        </thead>
+        <tbody id="devTableBody"></tbody>
+      </table>
+      <div class="helper" style="margin-top:8px;">
+        Admin kommer senare kunna se alla avvikelser i en separat adminvy.
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
-  <script>
-    const DEV_KEY = "deviations";
-
-    // Auth
-    const token = localStorage.getItem("token");
-    const companyId = localStorage.getItem("company_id");
-    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
-    const userName = localStorage.getItem("user_name") || "användare";
-    const userId = localStorage.getItem("user_id") || "local-user";
-
-    if (!companyId) {
-      window.location.href = "company-select.html";
-    } else if (!token) {
-      window.location.href = "login.html";
+<script src="auth.js"></script>
+<script>
+  (function syncUser() {
+    const raw = localStorage.getItem("user");
+    if (raw && !localStorage.getItem("currentUser")) {
+      try {
+        const u = JSON.parse(raw);
+        const mapped = {
+          ...u,
+          firstName: u.firstName || u.first_name || "",
+          lastName: u.lastName || u.last_name || ""
+        };
+        setCurrentUser(mapped);
+      } catch (e) {}
     }
+  })();
 
-    document.getElementById("companyTitle").textContent = companyName;
-    document.getElementById("sidebarCompanyName").textContent = companyName;
-    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+  const currentUser = requireLogin();
+  setupSidebarForUser(currentUser);
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_name");
-      localStorage.removeItem("user_role");
-      window.location.href = "login.html";
-    });
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  });
 
-    let deviations = JSON.parse(localStorage.getItem(DEV_KEY) || "[]");
+  const company = JSON.parse(localStorage.getItem("selectedCompany") || "null");
+  const companyName = company?.name || "Rail Work AB";
+  document.getElementById("companyTitle").textContent = companyName;
 
-    const deviationForm = document.getElementById("deviationForm");
-    const devImageInput = document.getElementById("devImage");
-    const devPreview = document.getElementById("devPreview");
-    const devTableBody = document.getElementById("devTableBody");
+  const fullName =
+    (currentUser.firstName || "") +
+    (currentUser.lastName ? " " + currentUser.lastName : "");
+  document.getElementById("welcomeText").textContent =
+    "Välkommen, " + (fullName.trim() || currentUser.email || "användare");
 
-    let currentImageData = null;
+  // Avvikelse‑logik
+  const DEV_KEY = "deviations";
+  let deviations = JSON.parse(localStorage.getItem(DEV_KEY) || "[]");
 
-    function saveDeviations() {
-      localStorage.setItem(DEV_KEY, JSON.stringify(deviations));
-    }
+  const deviationForm = document.getElementById("deviationForm");
+  const devImageInput = document.getElementById("devImage");
+  const devPreview = document.getElementById("devPreview");
+  const devTableBody = document.getElementById("devTableBody");
 
-    function renderTable() {
-      devTableBody.innerHTML = "";
-      deviations
-        .filter(d => d.user_id === userId)
-        .sort((a,b) => (b.created_at || 0) - (a.created_at || 0))
-        .forEach(d => {
-          const tr = document.createElement("tr");
+  let currentImageData = null;
 
-          const sevBadgeClass = (d.severity === "high" || d.severity === "critical")
+  function saveDeviations() {
+    localStorage.setItem(DEV_KEY, JSON.stringify(deviations));
+  }
+
+  function renderTable() {
+    devTableBody.innerHTML = "";
+    deviations
+      .filter((d) => d.user_email === currentUser.email)
+      .sort((a, b) => (b.created_at || 0) - (a.created_at || 0))
+      .forEach((d) => {
+        const tr = document.createElement("tr");
+
+        const sevBadgeClass =
+          d.severity === "high" || d.severity === "critical"
             ? "badge-sev-high"
             : "badge-sev-low";
 
-          let severityText = "Låg";
-          if (d.severity === "medium") severityText = "Medel";
-          if (d.severity === "high") severityText = "Hög";
-          if (d.severity === "critical") severityText = "Kritisk";
+        let severityText = "Låg";
+        if (d.severity === "medium") severityText = "Medel";
+        if (d.severity === "high") severityText = "Hög";
+        if (d.severity === "critical") severityText = "Kritisk";
 
-          let statusText = "Öppen";
-          let statusClass = "badge-open";
-          if (d.status === "in_progress") {
-            statusText = "Pågår";
-            statusClass = "badge-progress";
-          }
-          if (d.status === "resolved") {
-            statusText = "Åtgärdad";
-            statusClass = "badge-resolved";
-          }
+        let statusText = "Öppen";
+        let statusClass = "badge-open";
+        if (d.status === "in_progress") {
+          statusText = "Pågår";
+          statusClass = "badge-progress";
+        }
+        if (d.status === "resolved") {
+          statusText = "Åtgärdad";
+          statusClass = "badge-resolved";
+        }
 
-          tr.innerHTML = `
-            <td>${d.date || "-"}</td>
-            <td>${d.title || ""}</td>
-            <td><span class="badge ${sevBadgeClass}">${severityText}</span></td>
-            <td><span class="badge ${statusClass}">${statusText}</span></td>
-            <td>${d.image ? "<img src='" + d.image + "' class='img-thumb' />" : "-"}</td>
-          `;
+        tr.innerHTML = `
+          <td>${d.date || "-"}</td>
+          <td>${d.title || ""}</td>
+          <td><span class="badge ${sevBadgeClass}">${severityText}</span></td>
+          <td><span class="badge ${statusClass}">${statusText}</span></td>
+          <td>${d.image ? "<img src='" + d.image + "' class='img-thumb' />" : "-"}</td>
+        `;
 
-          devTableBody.appendChild(tr);
-        });
-    }
+        devTableBody.appendChild(tr);
+      });
+  }
 
-    devImageInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) {
-        currentImageData = null;
-        devPreview.style.display = "none";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        currentImageData = ev.target.result;
-        devPreview.src = currentImageData;
-        devPreview.style.display = "block";
-      };
-      reader.readAsDataURL(file);
-    });
-
-    deviationForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const date = document.getElementById("devDate").value;
-      const title = document.getElementById("devTitle").value.trim();
-      const severity = document.getElementById("devSeverity").value;
-      const status = document.getElementById("devStatus").value;
-      const description = document.getElementById("devDescription").value.trim();
-
-      if (!date || !title || !description) {
-        alert("Datum, rubrik och beskrivning krävs.");
-        return;
-      }
-
-      const dev = {
-        id: "dev_" + Math.random().toString(36).slice(2),
-        user_id: userId,
-        user_name: userName,
-        company_id: companyId,
-        date,
-        title,
-        severity,
-        status,
-        description,
-        image: currentImageData,
-        created_at: Date.now(),
-      };
-
-      deviations.push(dev);
-      saveDeviations();
-      deviationForm.reset();
+  devImageInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) {
       currentImageData = null;
       devPreview.style.display = "none";
-      renderTable();
-      alert("Avvikelse sparad.");
-    });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      currentImageData = ev.target.result;
+      devPreview.src = currentImageData;
+      devPreview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
 
-    // init default datum
-    document.getElementById("devDate").value = new Date().toISOString().slice(0,10);
+  deviationForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const date = document.getElementById("devDate").value;
+    const title = document.getElementById("devTitle").value.trim();
+    const severity = document.getElementById("devSeverity").value;
+    const status = document.getElementById("devStatus").value;
+    const description = document.getElementById("devDescription").value.trim();
+
+    if (!date || !title || !description) {
+      alert("Datum, rubrik och beskrivning krävs.");
+      return;
+    }
+
+    const dev = {
+      id: "dev_" + Math.random().toString(36).slice(2),
+      user_email: currentUser.email || "",
+      user_name: fullName.trim() || currentUser.email || "",
+      company: companyName,
+      date,
+      title,
+      severity,
+      status,
+      description,
+      image: currentImageData,
+      created_at: Date.now()
+    };
+
+    deviations.push(dev);
+    saveDeviations();
+    deviationForm.reset();
+    currentImageData = null;
+    devPreview.style.display = "none";
     renderTable();
-  </script>
+    alert("Avvikelse sparad.");
+  });
+
+  // init default datum
+  document.getElementById("devDate").value = new Date().toISOString().slice(0, 10);
+  renderTable();
+</script>
 </body>
 </html>

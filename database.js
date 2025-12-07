@@ -5,74 +5,68 @@ const bcrypt = require("bcryptjs");
 const db = new sqlite3.Database("./opero.db");
 
 db.serialize(() => {
-  // Skapa users-tabell om den inte finns alls
+  // Skapa companies-tabell (om du vill använda företag senare)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS companies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      code TEXT UNIQUE
+    );
+  `);
+
+  // Skapa users-tabell med alla kolumner vi kan behöva
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username   TEXT UNIQUE,
+      email      TEXT UNIQUE,
+      password   TEXT NOT NULL,
+      role       TEXT NOT NULL DEFAULT 'user',
+      company_id INTEGER,
+      first_name TEXT,
+      last_name  TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Standard-företag (id = 1)
   db.run(
-    `CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT
-    )`
+    `INSERT OR IGNORE INTO companies (id, name, code)
+     VALUES (1, 'Rail Work AB', 'RWA');`
   );
 
-  // Säkerställ att alla kolumner finns
-  db.all("PRAGMA table_info(users)", (err, rows) => {
-    if (err) {
-      console.error("Kunde inte läsa users-schema:", err);
-      return;
-    }
+  // Skapa admin-användare om den inte finns
+  const adminEmail = "edgar@test.se";
+  const adminPasswordPlain = "1234";
 
-    const cols = rows.map((r) => r.name);
-    const alter = [];
-
-    if (!cols.includes("username")) {
-      alter.push(`ADD COLUMN username TEXT UNIQUE`);
-    }
-    if (!cols.includes("email")) {
-      alter.push(`ADD COLUMN email TEXT UNIQUE`);
-    }
-    if (!cols.includes("password")) {
-      alter.push(`ADD COLUMN password TEXT NOT NULL DEFAULT ''`);
-    }
-    if (!cols.includes("role")) {
-      alter.push(`ADD COLUMN role TEXT NOT NULL DEFAULT 'user'`);
-    }
-    if (!cols.includes("created_at")) {
-      alter.push(`ADD COLUMN created_at TEXT`);
-    }
-
-    alter.forEach((stmt) => {
-      db.run(`ALTER TABLE users ${stmt}`, (e) => {
-        if (e && !String(e).includes("duplicate column")) {
-          console.error("ALTER TABLE-fel:", e);
-        }
-      });
-    });
-
-    // Seeda admin-användare om den inte finns
-    db.get(
-      `SELECT id FROM users WHERE email = ?`,
-      ["edgar@test.se"],
-      (err2, row) => {
-        if (err2) {
-          console.error("Kunde inte läsa admin-användare:", err2);
-          return;
-        }
-        if (!row) {
-          const hash = bcrypt.hashSync("1234", 10);
-          db.run(
-            `INSERT INTO users (username, email, password, role, created_at)
-             VALUES (?, ?, ?, 'admin', datetime('now'))`,
-            ["edgar@test.se", "edgar@test.se", hash],
-            (err3) => {
-              if (err3) {
-                console.error("Kunde inte skapa admin-användare:", err3);
-              } else {
-                console.log("Admin-användare skapad: edgar@test.se / 1234");
-              }
-            }
-          );
-        }
+  db.get(
+    `SELECT id FROM users WHERE email = ?`,
+    [adminEmail],
+    (err, row) => {
+      if (err) {
+        console.error("Kunde inte läsa admin-användare:", err);
+        return;
       }
-    );
-  });
+
+      if (!row) {
+        const hash = bcrypt.hashSync(adminPasswordPlain, 10);
+
+        db.run(
+          `INSERT INTO users
+           (username, email, password, role, company_id, first_name, last_name)
+           VALUES (?, ?, ?, 'admin', 1, 'Edgar', 'Zubkov');`,
+          [adminEmail, adminEmail, hash],
+          (err2) => {
+            if (err2) {
+              console.error("Kunde inte skapa admin-användare:", err2);
+            } else {
+              console.log("Admin-användare skapad: edgar@test.se / 1234");
+            }
+          }
+        );
+      }
+    }
+  );
 });
 
 module.exports = db;
