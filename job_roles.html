@@ -139,9 +139,7 @@
       color: #111827;
     }
 
-    .btn-secondary:hover {
-      background: #f3f4f6;
-    }
+    .btn-secondary:hover { background: #f3f4f6; }
 
     table {
       width: 100%;
@@ -215,133 +213,227 @@
   </style>
 </head>
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2 id="sidebarCompanyName">Admina Bas</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h2>Admina Bas</h2>
 
-    <div class="nav-section">
-      <a href="dashboard.html" class="nav-item">Översikt</a>
-      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-      <a href="#" class="nav-item">Planering</a>
-      <a href="deviations.html" class="nav-item">Avvikelser</a>
-      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
-      <a href="#" class="nav-item">Kontakter</a>
+  <div class="nav-section">
+    <a href="dashboard.html" class="nav-item">Översikt</a>
+    <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+    <a href="planning.html" class="nav-item">Planering</a>
+    <a href="deviations.html" class="nav-item">Avvikelser</a>
+    <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+    <a href="contacts.html" class="nav-item">Kontakter</a>
+  </div>
+
+  <div class="nav-section-title admin-only">Administration</div>
+  <a href="admin.html" class="nav-item admin-only">Attestering</a>
+  <a href="projects.html" class="nav-item admin-only">Projekt</a>
+  <a href="job_roles.html" class="nav-item admin-only active">Yrkesroller</a>
+  <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+  <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Rail Work AB</h1>
+      <small>Yrkesroller – används i tidrapporter</small>
+    </div>
+    <div class="welcome" id="welcomeText">Välkommen</div>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h2>Yrkesroller</h2>
+      <p>Lägg upp roller som banarbetare, tågvarnare, arbetsledare m.m.</p>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+    <div class="card">
+      <div class="card-title" id="formTitle">Ny yrkesroll</div>
+      <form id="roleForm">
+        <input type="hidden" id="editRoleId" />
+
+        <div class="field">
+          <label for="roleName">Rollnamn</label>
+          <input id="roleName" placeholder="Ex: Banarbetare" required />
+        </div>
+
+        <div class="field">
+          <label for="roleDescription">Beskrivning</label>
+          <textarea id="roleDescription" placeholder="Valfri beskrivning"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="roleStatus">Status</label>
+          <select id="roleStatus">
+            <option value="aktiv">Aktiv</option>
+            <option value="inaktiv">Inaktiv</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button type="submit" class="btn-primary">Spara roll</button>
+          <button type="button" class="btn-secondary" id="resetBtn">Rensa</button>
+        </div>
+      </form>
     </div>
 
-    <div class="nav-section-title">Administration</div>
-    <a href="admin.html" class="nav-item">Attestering</a>
-    <a href="projects.html" class="nav-item">Projekt</a>
-    <a href="job_roles.html" class="nav-item active">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
-
-    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <h1 id="companyTitle">Rail Work AB</h1>
-        <small>Yrkesroller – används i tidrapporter</small>
-      </div>
-      <div class="welcome" id="welcomeText">Välkommen</div>
-    </div>
-
-    <div class="page-header">
-      <div>
-        <h2>Yrkesroller</h2>
-        <p>Lägg upp roller som banarbetare, tågvarnare, arbetsledare m.m.</p>
-      </div>
-    </div>
-
-    <div class="layout-grid">
-      <div class="card">
-        <div class="card-title" id="formTitle">Ny yrkesroll</div>
-        <form id="roleForm">
-          <input type="hidden" id="editRoleId" />
-
-          <div class="field">
-            <label for="roleName">Rollnamn</label>
-            <input id="roleName" placeholder="Ex: Banarbetare" required />
-          </div>
-
-          <div class="field">
-            <label for="roleDescription">Beskrivning</label>
-            <textarea id="roleDescription" placeholder="Valfri beskrivning"></textarea>
-          </div>
-
-          <div class="field">
-            <label for="roleStatus">Status</label>
-            <select id="roleStatus">
-              <option value="aktiv">Aktiv</option>
-              <option value="inaktiv">Inaktiv</option>
-            </select>
-          </div>
-
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button type="submit" class="btn-primary">Spara roll</button>
-            <button type="button" class="btn-secondary" id="resetBtn">Rensa</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Alla roller</div>
-        <table>
-          <thead>
+    <div class="card">
+      <div class="card-title">Alla roller</div>
+      <table>
+        <thead>
           <tr>
             <th>Namn</th>
             <th>Beskrivning</th>
             <th>Status</th>
             <th>Åtgärder</th>
           </tr>
-          </thead>
-          <tbody id="rolesTableBody"></tbody>
-        </table>
-      </div>
+        </thead>
+        <tbody id="rolesTableBody"></tbody>
+      </table>
     </div>
-  </main>
+  </div>
+</main>
 
-  <script>
-const JOB_ROLES_KEY = "jobRoles";
+<script src="auth.js"></script>
+<script>
+  // Brygga: om backend har sparat "user" men inte "currentUser"
+  (function syncUser() {
+    const raw = localStorage.getItem("user");
+    if (raw && !localStorage.getItem("currentUser")) {
+      try {
+        const u = JSON.parse(raw);
+        const mapped = {
+          ...u,
+          firstName: u.firstName || u.first_name || "",
+          lastName: u.lastName || u.last_name || ""
+        };
+        setCurrentUser(mapped);
+      } catch (e) {}
+    }
+  })();
 
-let jobRoles = JSON.parse(localStorage.getItem(JOB_ROLES_KEY) || "[]");
+  const currentUser = requireLogin();
+  setupSidebarForUser(currentUser);
 
-function saveJobRoles() {
-  localStorage.setItem(JOB_ROLES_KEY, JSON.stringify(jobRoles));
-}
-
-// Exempel: lägg till ny roll (koppla knappen "Spara" till denna)
-function addJobRole(name, description) {
-  if (!name.trim()) return;
-
-  jobRoles.push({
-    id: crypto.randomUUID(),   // unik ID
-    name: name.trim(),
-    description: description.trim(),
-    active: true
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
   });
 
-  saveJobRoles();
-  renderJobRolesTable();       // din egen funktion som ritar tabellen
-}
+  // Bara admin ska in här
+  if (!isAdmin(currentUser)) {
+    alert("Endast admin har åtkomst till denna sida.");
+    window.location.href = "dashboard.html";
+  }
 
-// Exempel: toggla aktiv / inaktiv
-function toggleJobRoleActive(id) {
-  const role = jobRoles.find(r => r.id === id);
-  if (!role) return;
-  role.active = !role.active;
-  saveJobRoles();
-  renderJobRolesTable();
-}
+  const JOB_ROLES_KEY = "jobRoles";
+  let jobRoles = JSON.parse(localStorage.getItem(JOB_ROLES_KEY) || "[]");
 
-// Exempel: ta bort roll
-function deleteJobRole(id) {
-  jobRoles = jobRoles.filter(r => r.id !== id);
-  saveJobRoles();
+  const roleForm = document.getElementById("roleForm");
+  const resetBtn = document.getElementById("resetBtn");
+  const rolesTableBody = document.getElementById("rolesTableBody");
+  const formTitle = document.getElementById("formTitle");
+
+  function saveJobRoles() {
+    localStorage.setItem(JOB_ROLES_KEY, JSON.stringify(jobRoles));
+  }
+
+  function uuid() {
+    return "role_" + Math.random().toString(36).slice(2);
+  }
+
+  function renderJobRolesTable() {
+    rolesTableBody.innerHTML = "";
+    jobRoles.forEach((r) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.description || "-"}</td>
+        <td>
+          <span class="badge ${r.status === "aktiv" ? "badge-active" : "badge-inactive"}">
+            ${r.status === "aktiv" ? "Aktiv" : "Inaktiv"}
+          </span>
+        </td>
+        <td>
+          <div class="table-actions">
+            <button class="btn-small edit">Redigera</button>
+            <button class="btn-small delete">Ta bort</button>
+          </div>
+        </td>
+      `;
+
+      const editBtn = tr.querySelector(".btn-small.edit");
+      const deleteBtn = tr.querySelector(".btn-small.delete");
+
+      editBtn.addEventListener("click", () => {
+        document.getElementById("editRoleId").value = r.id;
+        document.getElementById("roleName").value = r.name;
+        document.getElementById("roleDescription").value = r.description || "";
+        document.getElementById("roleStatus").value = r.status || "aktiv";
+        formTitle.textContent = "Redigera yrkesroll";
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        if (!confirm("Ta bort yrkesrollen?")) return;
+        jobRoles = jobRoles.filter((rr) => rr.id !== r.id);
+        saveJobRoles();
+        renderJobRolesTable();
+      });
+
+      rolesTableBody.appendChild(tr);
+    });
+  }
+
+  roleForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const id = document.getElementById("editRoleId").value;
+    const name = document.getElementById("roleName").value.trim();
+    const desc = document.getElementById("roleDescription").value.trim();
+    const status = document.getElementById("roleStatus").value;
+
+    if (!name) {
+      alert("Rollnamn krävs.");
+      return;
+    }
+
+    if (id) {
+      const idx = jobRoles.findIndex((r) => r.id === id);
+      if (idx !== -1) {
+        jobRoles[idx] = { ...jobRoles[idx], name, description: desc, status };
+      }
+    } else {
+      jobRoles.push({
+        id: uuid(),
+        name,
+        description: desc,
+        status
+      });
+    }
+
+    saveJobRoles();
+    renderJobRolesTable();
+    roleForm.reset();
+    document.getElementById("editRoleId").value = "";
+    formTitle.textContent = "Ny yrkesroll";
+  });
+
+  resetBtn.addEventListener("click", () => {
+    roleForm.reset();
+    document.getElementById("editRoleId").value = "";
+    formTitle.textContent = "Ny yrkesroll";
+  });
+
   renderJobRolesTable();
-}
 </script>
 </body>
 </html>

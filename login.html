@@ -155,16 +155,28 @@
           return;
         }
 
-        // Spara användare + token + valt företag
+        // data.user förväntas komma från backend (SQLite)
         const user = data.user || {};
-        user.company = company.name;
-        localStorage.setItem("user", JSON.stringify(user));
+        // Spara token från backend (JWT t.ex.)
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
 
+        // Koppla ihop med auth.js
+        setCurrentUser(user);
+
+        // Spara lite extra för sidor som använder company_* och user_*
+        localStorage.setItem("company_id", user.company_id || company.code);
+        localStorage.setItem("company_name", company.name);
+        localStorage.setItem("user_id", user.id);
+        const fullName =
+          (user.first_name || user.firstName || "") +
+          ((user.last_name || user.lastName) ? " " + (user.last_name || user.lastName) : "");
+        localStorage.setItem("user_name", fullName.trim() || user.email || "");
+        localStorage.setItem("user_role", user.role || "user");
+
         // Admin -> admin.html, annars dashboard
-        if (user.role === "admin") {
+        if ((user.role || "").toLowerCase() === "admin") {
           window.location.href = "admin.html";
         } else {
           window.location.href = "dashboard.html";

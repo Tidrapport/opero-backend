@@ -176,7 +176,6 @@
       margin-top: 8px;
     }
 
-    /* FILTERS */
     .filters {
       display: flex;
       flex-wrap: wrap;
@@ -217,319 +216,430 @@
   </style>
 </head>
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2>Admina Bas</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h2>Admina Bas</h2>
 
-    <div class="nav-section">
-      <a href="dashboard.html" class="nav-item">Översikt</a>
-      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-      <a href="planning.html" class="nav-item">Planering</a>
-      <a href="deviations.html" class="nav-item">Avvikelser</a>
-      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
-      <a href="contacts.html" class="nav-item">Kontakter</a>
+  <div class="nav-section">
+    <a href="dashboard.html" class="nav-item">Översikt</a>
+    <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+    <a href="planning.html" class="nav-item">Planering</a>
+    <a href="deviations.html" class="nav-item">Avvikelser</a>
+    <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+    <a href="contacts.html" class="nav-item">Kontakter</a>
+  </div>
+
+  <div class="nav-section-title admin-only">Administration</div>
+  <a href="admin.html" class="nav-item admin-only active">Attestering</a>
+  <a href="projects.html" class="nav-item admin-only">Projekt</a>
+  <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+  <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+  <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Rail Work AB</h1>
+      <small>Attestering av tidrapporter</small>
+    </div>
+    <div class="welcome" id="welcomeText">Välkommen</div>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h2>Attestering av tidrapporter</h2>
+      <p>
+        Välj projekt, underprojekt och användare för att attestera rätt rader.
+        När en rad är attesterad låses den för användaren.
+      </p>
+    </div>
+    <button class="btn-secondary" id="downloadPdfBtn">Exportera PDF (attesterade)</button>
+  </div>
+
+  <div class="card">
+    <!-- FILTERS -->
+    <div class="filters">
+      <label>
+        Användare
+        <select id="filterUser">
+          <option value="">Alla användare</option>
+        </select>
+      </label>
+
+      <label>
+        Projekt
+        <select id="filterProject">
+          <option value="">Alla projekt</option>
+        </select>
+      </label>
+
+      <label>
+        Underprojekt
+        <select id="filterSubproject">
+          <option value="">Alla underprojekt</option>
+        </select>
+      </label>
+
+      <label>
+        Status
+        <select id="filterStatus">
+          <option value="">Alla</option>
+          <option value="Ny">Ny</option>
+          <option value="Attesterad">Attesterad</option>
+        </select>
+      </label>
+
+      <button id="clearFiltersBtn">Rensa filter</button>
     </div>
 
-    <div class="nav-section-title admin-only">Administration</div>
-    <a href="admin.html" class="nav-item admin-only active">Attestering</a>
-    <a href="projects.html" class="nav-item admin-only">Projekt</a>
-    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
-
-    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <h1>Rail Work AB</h1>
-        <small>Attestering av tidrapporter</small>
-      </div>
-      <div class="welcome" id="welcomeText">Välkommen</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Användare</th>
+          <th>Projekt</th>
+          <th>Underprojekt</th>
+          <th>Start</th>
+          <th>Slut</th>
+          <th>Totalt (h)</th>
+          <th>Dag</th>
+          <th>Kväll</th>
+          <th>Natt</th>
+          <th>Helg</th>
+          <th>Restid (h)</th>
+          <th>Status</th>
+          <th>Åtgärder</th>
+        </tr>
+      </thead>
+      <tbody id="reportsBody"></tbody>
+    </table>
+    <div id="emptyState" class="badge-empty">
+      Inga tidrapporter hittades. Be användarna rapportera tid på sidan <strong>Tidrapporter</strong>.
     </div>
+  </div>
+</main>
 
-    <div class="page-header">
-      <div>
-        <h2>Attestering av tidrapporter</h2>
-        <p>
-          Välj projekt, underprojekt och användare för att attestera rätt rader.
-          När en rad är attesterad låses den för användaren.
-        </p>
-      </div>
-      <button class="btn-secondary" id="downloadPdfBtn">Exportera PDF (attesterade)</button>
-    </div>
+<script src="auth.js"></script>
+<script>
+  (function syncUser() {
+    const raw = localStorage.getItem("user");
+    if (raw && !localStorage.getItem("currentUser")) {
+      try {
+        const u = JSON.parse(raw);
+        const mapped = {
+          ...u,
+          firstName: u.firstName || u.first_name || "",
+          lastName: u.lastName || u.last_name || ""
+        };
+        setCurrentUser(mapped);
+      } catch (e) {}
+    }
+  })();
 
-    <div class="card">
-      <!-- FILTERS -->
-      <div class="filters">
-        <label>
-          Användare
-          <select id="filterUser">
-            <option value="">Alla användare</option>
-          </select>
-        </label>
+  const currentUser = requireLogin();
+  setupSidebarForUser(currentUser);
 
-        <label>
-          Projekt
-          <select id="filterProject">
-            <option value="">Alla projekt</option>
-          </select>
-        </label>
+  if (!isAdmin(currentUser)) {
+    alert("Endast admin har åtkomst till denna sida.");
+    window.location.href = "dashboard.html";
+  }
 
-        <label>
-          Underprojekt
-          <select id="filterSubproject">
-            <option value="">Alla underprojekt</option>
-          </select>
-        </label>
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  });
 
-        <label>
-          Status
-          <select id="filterStatus">
-            <option value="">Alla</option>
-            <option value="Ny">Ny</option>
-            <option value="Attesterad">Attesterad</option>
-          </select>
-        </label>
+  const STORAGE_KEY = "timeReports";
+  const PROJECTS_KEY = "projects";
+  const SUBPROJECTS_KEY = "subProjects";
 
-        <button id="clearFiltersBtn">Rensa filter</button>
-      </div>
+  let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+  let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
 
-      <table>
-        <thead>
-          <tr>
-            <th>Datum</th>
-            <th>Användare</th>
-            <th>Projekt</th>
-            <th>Underprojekt</th>
-            <th>Start</th>
-            <th>Slut</th>
-            <th>Totalt (h)</th>
-            <th>Dag</th>
-            <th>Kväll</th>
-            <th>Natt</th>
-            <th>Helg</th>
-            <th>Restid (h)</th>
-            <th>Status</th>
-            <th>Åtgärder</th>
-          </tr>
-        </thead>
-        <tbody id="reportsBody"></tbody>
-      </table>
-      <div id="emptyState" class="badge-empty">
-        Inga tidrapporter hittades. Be användarna rapportera tid på sidan <strong>Tidrapporter</strong>.
-      </div>
-    </div>
-  </main>
+  // Defaults
+  reports.forEach((r) => {
+    if (!r.status) r.status = "Ny";
+    if (!r.userName) r.userName = "";
+    if (r.restid === undefined) r.restid = 0;
+    if (r.rast === undefined) r.rast = 0;
+  });
+  saveReports();
 
-  <script src="auth.js"></script>
-  <script>
-    const currentUser = requireLogin();
-    setupSidebarForUser(currentUser);
+  function saveReports() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+  }
 
-    if (!isAdmin(currentUser)) {
-      alert("Endast admin har åtkomst till denna sida.");
-      window.location.href = "dashboard.html";
+  function parseDate(dateStr) {
+    const [y, m, d] = (dateStr || "").split("-").map(Number);
+    if (!y || !m || !d) return new Date();
+    return new Date(y, m - 1, d);
+  }
+
+  function getObCategory(dateObj) {
+    const dow = dateObj.getDay();
+    const hour = dateObj.getHours();
+
+    // Helg: fre 18:00 -> mån 06:00
+    if (
+      (dow === 5 && hour >= 18) ||
+      dow === 6 ||
+      dow === 0 ||
+      (dow === 1 && hour < 6)
+    ) {
+      return "helg";
+    }
+    if (hour >= 21 || hour < 6) return "natt";
+    if (hour >= 18 && hour < 21) return "kväll";
+    return "dag";
+  }
+
+  function splitObHours(report) {
+    const result = { dag: 0, kväll: 0, natt: 0, helg: 0 };
+    if (!report.datum || !report.starttid || !report.sluttid) return result;
+
+    const [sh, sm] = report.starttid.split(":").map(Number);
+    const [eh, em] = report.sluttid.split(":").map(Number);
+
+    let startDate = parseDate(report.datum);
+    startDate.setHours(sh || 0, sm || 0, 0, 0);
+
+    let endDate = parseDate(report.datum);
+    endDate.setHours(eh || 0, em || 0, 0, 0);
+
+    if (endDate <= startDate) {
+      endDate.setDate(endDate.getDate() + 1);
     }
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("currentUser");
-      window.location.href = "login.html";
-    });
+    const stepMinutes = 15;
+    let cursor = new Date(startDate);
 
-    const STORAGE_KEY = "timeReports";
-    const PROJECTS_KEY = "projects";
-    const SUBPROJECTS_KEY = "subProjects";
+    while (cursor < endDate) {
+      const cat = getObCategory(cursor);
+      result[cat] += stepMinutes / 60;
+      cursor = new Date(cursor.getTime() + stepMinutes * 60000);
+    }
 
-    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-    let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+    return result;
+  }
 
+  function toggleEmptyState(hasRows) {
+    document.getElementById("emptyState").style.display =
+      hasRows ? "none" : "block";
+  }
+
+  const tbody = document.getElementById("reportsBody");
+  const filterUser = document.getElementById("filterUser");
+  const filterProject = document.getElementById("filterProject");
+  const filterSubproject = document.getElementById("filterSubproject");
+  const filterStatus = document.getElementById("filterStatus");
+  const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+
+  function buildFilterOptions() {
+    // Användare
+    const userSet = new Set();
     reports.forEach((r) => {
-      if (!r.status) r.status = "Ny";
-      if (!r.userName) r.userName = "";
-      if (r.restid === undefined) r.restid = 0;
-      if (r.rast === undefined) r.rast = 0;
+      if (r.userName && r.userName.trim() !== "") {
+        userSet.add(r.userName.trim());
+      }
     });
-    saveReports();
+    filterUser.innerHTML = '<option value="">Alla användare</option>';
+    [...userSet].sort().forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      filterUser.appendChild(opt);
+    });
 
-    function saveReports() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-    }
+    // Projekt
+    projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+    subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
 
-    function parseDate(dateStr) {
-      const [y, m, d] = (dateStr || "").split("-").map(Number);
-      if (!y || !m || !d) return new Date();
-      return new Date(y, m - 1, d);
-    }
+    const currentProjValue = filterProject.value;
+    const currentSubValue = filterSubproject.value;
 
-    function getObCategory(dateObj) {
-      const dow = dateObj.getDay();
-      const hour = dateObj.getHours();
+    filterProject.innerHTML = '<option value="">Alla projekt</option>';
+    projects.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      filterProject.appendChild(opt);
+    });
+    if (currentProjValue) filterProject.value = currentProjValue;
 
-      // Helg: fre 18:00 -> mån 06:00
-      if (
-        (dow === 5 && hour >= 18) ||
-        dow === 6 ||
-        dow === 0 ||
-        (dow === 1 && hour < 6)
-      ) {
-        return "helg";
-      }
-      if (hour >= 21 || hour < 6) return "natt";
-      if (hour >= 18 && hour < 21) return "kväll";
-      return "dag";
-    }
+    // Underprojekt
+    filterSubproject.innerHTML =
+      '<option value="">Alla underprojekt</option>';
+    subProjects.forEach((sp) => {
+      const opt = document.createElement("option");
+      opt.value = sp.id;
+      opt.textContent = sp.name;
+      filterSubproject.appendChild(opt);
+    });
+    if (currentSubValue) filterSubproject.value = currentSubValue;
+  }
 
-    function splitObHours(report) {
-      const result = { dag: 0, kväll: 0, natt: 0, helg: 0 };
-      if (!report.datum || !report.starttid || !report.sluttid) return result;
+  function getProjectName(r) {
+    return (
+      r.projectName ||
+      (r.projectId && (projects.find((p) => p.id === r.projectId) || {}).name) ||
+      r.projekt ||
+      "-"
+    );
+  }
 
-      const [sh, sm] = report.starttid.split(":").map(Number);
-      const [eh, em] = report.sluttid.split(":").map(Number);
+  function getSubProjectName(r) {
+    return (
+      r.subProjectName ||
+      (r.subProjectId &&
+        (subProjects.find((sp) => sp.id === r.subProjectId) || {}).name) ||
+      ""
+    );
+  }
 
-      let startDate = parseDate(report.datum);
-      startDate.setHours(sh || 0, sm || 0, 0, 0);
+  function getFilteredReports() {
+    const userVal = filterUser.value;
+    const projVal = filterProject.value;
+    const subVal = filterSubproject.value;
+    const statusVal = filterStatus.value;
 
-      let endDate = parseDate(report.datum);
-      endDate.setHours(eh || 0, em || 0, 0, 0);
+    return reports.filter((r) => {
+      const matchesUser =
+        !userVal || (r.userName || "").trim() === userVal;
+      const matchesProject = !projVal || r.projectId === projVal;
+      const matchesSub = !subVal || r.subProjectId === subVal;
+      const matchesStatus = !statusVal || r.status === statusVal;
 
-      if (endDate <= startDate) {
-        endDate.setDate(endDate.getDate() + 1);
-      }
+      return matchesUser && matchesProject && matchesSub && matchesStatus;
+    });
+  }
 
-      const stepMinutes = 15;
-      let cursor = new Date(startDate);
+  function render() {
+    tbody.innerHTML = "";
 
-      while (cursor < endDate) {
-        const cat = getObCategory(cursor);
-        result[cat] += stepMinutes / 60;
-        cursor = new Date(cursor.getTime() + stepMinutes * 60000);
-      }
+    const filtered = getFilteredReports();
 
-      return result;
-    }
+    filtered.forEach((r) => {
+      const realIndex = reports.indexOf(r);
 
-    function toggleEmptyState(hasRows) {
-      document.getElementById("emptyState").style.display =
-        hasRows ? "none" : "block";
-    }
+      const ob = splitObHours(r);
+      const tr = document.createElement("tr");
 
-    const tbody = document.getElementById("reportsBody");
-    const filterUser = document.getElementById("filterUser");
-    const filterProject = document.getElementById("filterProject");
-    const filterSubproject = document.getElementById("filterSubproject");
-    const filterStatus = document.getElementById("filterStatus");
-    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+      const totalHours = parseFloat(r.timmar || "0") || 0;
+      const travel = parseFloat(r.restid || "0") || 0;
 
-    function buildFilterOptions() {
-      // Användare
-      const userSet = new Set();
-      reports.forEach(r => {
-        if (r.userName && r.userName.trim() !== "") {
-          userSet.add(r.userName.trim());
+      const projectName = getProjectName(r);
+      const subProjectName = getSubProjectName(r);
+
+      tr.innerHTML = `
+        <td>${r.datum || "-"}</td>
+        <td>
+          <input class="name-input" type="text" value="${r.userName || ""}" />
+        </td>
+        <td>${projectName}</td>
+        <td>${subProjectName || "-"}</td>
+        <td>${r.starttid || "-"}</td>
+        <td>${r.sluttid || "-"}</td>
+        <td>${totalHours.toFixed(1)}</td>
+        <td>${ob.dag.toFixed(1)}</td>
+        <td>${ob.kväll.toFixed(1)}</td>
+        <td>${ob.natt.toFixed(1)}</td>
+        <td>${ob.helg.toFixed(1)}</td>
+        <td>${travel.toFixed(1)}</td>
+        <td>
+          <span class="status-badge ${
+            r.status === "Attesterad" ? "status-attesterad" : "status-ny"
+          }">
+            ${r.status === "Attesterad" ? "🔒 Attesterad" : "Ny"}
+          </span>
+        </td>
+        <td>
+          <div class="actions">
+            <button class="btn-small attest">
+              ${r.status === "Attesterad" ? "Ta bort attest" : "Attestera"}
+            </button>
+            <button class="btn-small delete">Ta bort</button>
+          </div>
+        </td>
+      `;
+
+      const nameInput = tr.querySelector(".name-input");
+      nameInput.addEventListener("change", () => {
+        reports[realIndex].userName = nameInput.value.trim();
+        saveReports();
+        buildFilterOptions();
+      });
+
+      const attestBtn = tr.querySelector(".btn-small.attest");
+      attestBtn.addEventListener("click", () => {
+        if (reports[realIndex].status === "Attesterad") {
+          reports[realIndex].status = "Ny";
+        } else {
+          reports[realIndex].status = "Attesterad";
         }
-      });
-      filterUser.innerHTML = '<option value="">Alla användare</option>';
-      [...userSet].sort().forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        filterUser.appendChild(opt);
+        saveReports();
+        render();
       });
 
-      // Projekt
-      projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-      subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
-
-      const currentProjValue = filterProject.value;
-      const currentSubValue = filterSubproject.value;
-
-      filterProject.innerHTML = '<option value="">Alla projekt</option>';
-      projects.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.name;
-        filterProject.appendChild(opt);
+      const deleteBtn = tr.querySelector(".btn-small.delete");
+      deleteBtn.addEventListener("click", () => {
+        if (!confirm("Vill du ta bort den här tidrapporten?")) return;
+        reports.splice(realIndex, 1);
+        saveReports();
+        buildFilterOptions();
+        render();
       });
-      if (currentProjValue) filterProject.value = currentProjValue;
 
-      // Underprojekt
-      filterSubproject.innerHTML = '<option value="">Alla underprojekt</option>';
-      subProjects.forEach(sp => {
-        const opt = document.createElement("option");
-        opt.value = sp.id;
-        opt.textContent = sp.name;
-        filterSubproject.appendChild(opt);
-      });
-      if (currentSubValue) filterSubproject.value = currentSubValue;
+      tbody.appendChild(tr);
+    });
+
+    toggleEmptyState(filtered.length > 0);
+  }
+
+  filterUser.addEventListener("change", render);
+  filterProject.addEventListener("change", render);
+  filterSubproject.addEventListener("change", render);
+  filterStatus.addEventListener("change", render);
+
+  clearFiltersBtn.addEventListener("click", () => {
+    filterUser.value = "";
+    filterProject.value = "";
+    filterSubproject.value = "";
+    filterStatus.value = "";
+    render();
+  });
+
+  document.getElementById("downloadPdfBtn").addEventListener("click", () => {
+    const attested = reports.filter((r) => r.status === "Attesterad");
+    const list = attested.length ? attested : reports;
+
+    if (!list.length) {
+      alert("Det finns inga tidrapporter att skriva ut.");
+      return;
     }
 
-    function getProjectName(r) {
-      return (
-        r.projectName ||
-        (r.projectId && (projects.find(p => p.id === r.projectId) || {}).name) ||
-        r.projekt ||
-        "-"
-      );
-    }
+    let rowsHtml = "";
+    list.forEach((r) => {
+      const ob = splitObHours(r);
+      const totalHours = parseFloat(r.timmar || "0") || 0;
+      const travel = parseFloat(r.restid || "0") || 0;
 
-    function getSubProjectName(r) {
-      return (
-        r.subProjectName ||
-        (r.subProjectId && (subProjects.find(sp => sp.id === r.subProjectId) || {}).name) ||
-        ""
-      );
-    }
+      const projectName = getProjectName(r);
+      const subProjectName = getSubProjectName(r);
 
-    function getFilteredReports() {
-      const userVal = filterUser.value;
-      const projVal = filterProject.value;
-      const subVal = filterSubproject.value;
-      const statusVal = filterStatus.value;
-
-      return reports.filter(r => {
-        const matchesUser =
-          !userVal || (r.userName || "").trim() === userVal;
-        const matchesProject =
-          !projVal || (r.projectId === projVal);
-        const matchesSub =
-          !subVal || (r.subProjectId === subVal);
-        const matchesStatus =
-          !statusVal || r.status === statusVal;
-
-        return matchesUser && matchesProject && matchesSub && matchesStatus;
-      });
-    }
-
-    function render() {
-      tbody.innerHTML = "";
-
-      const filtered = getFilteredReports();
-
-      filtered.forEach((r, indexInFiltered) => {
-        const realIndex = reports.indexOf(r);
-
-        const ob = splitObHours(r);
-        const tr = document.createElement("tr");
-
-        const totalHours = parseFloat(r.timmar || "0") || 0;
-        const travel = parseFloat(r.restid || "0") || 0;
-
-        const projectName = getProjectName(r);
-        const subProjectName = getSubProjectName(r);
-
-        tr.innerHTML = `
+      rowsHtml += `
+        <tr>
           <td>${r.datum || "-"}</td>
-          <td>
-            <input class="name-input" type="text" value="${r.userName || ""}" />
-          </td>
-          <td>${projectName}</td>
-          <td>${subProjectName || "-"}</td>
+          <td>${(r.userName || "").replace(/</g, "&lt;")}</td>
+          <td>${projectName.replace(/</g, "&lt;")}</td>
+          <td>${(subProjectName || "").replace(/</g, "&lt;")}</td>
           <td>${r.starttid || "-"}</td>
           <td>${r.sluttid || "-"}</td>
           <td>${totalHours.toFixed(1)}</td>
@@ -538,188 +648,90 @@
           <td>${ob.natt.toFixed(1)}</td>
           <td>${ob.helg.toFixed(1)}</td>
           <td>${travel.toFixed(1)}</td>
-          <td>
-            <span class="status-badge ${
-              r.status === "Attesterad" ? "status-attesterad" : "status-ny"
-            }">
-              ${r.status === "Attesterad" ? "🔒 Attesterad" : "Ny"}
-            </span>
-          </td>
-          <td>
-            <div class="actions">
-              <button class="btn-small attest">
-                ${r.status === "Attesterad" ? "Ta bort attest" : "Attestera"}
-              </button>
-              <button class="btn-small delete">Ta bort</button>
-            </div>
-          </td>
-        `;
+        </tr>
+      `;
+    });
 
-        const nameInput = tr.querySelector(".name-input");
-        nameInput.addEventListener("change", () => {
-          reports[realIndex].userName = nameInput.value.trim();
-          saveReports();
-          buildFilterOptions();
-        });
-
-        const attestBtn = tr.querySelector(".btn-small.attest");
-        attestBtn.addEventListener("click", () => {
-          if (reports[realIndex].status === "Attesterad") {
-            reports[realIndex].status = "Ny";
-          } else {
-            reports[realIndex].status = "Attesterad";
-          }
-          saveReports();
-          render();
-        });
-
-        const deleteBtn = tr.querySelector(".btn-small.delete");
-        deleteBtn.addEventListener("click", () => {
-          if (!confirm("Vill du ta bort den här tidrapporten?")) return;
-          reports.splice(realIndex, 1);
-          saveReports();
-          buildFilterOptions();
-          render();
-        });
-
-        tbody.appendChild(tr);
-      });
-
-      toggleEmptyState(filtered.length > 0);
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Popup blockerad – tillåt popup för att skapa PDF.");
+      return;
     }
 
-    // Filter events
-    filterUser.addEventListener("change", render);
-    filterProject.addEventListener("change", render);
-    filterSubproject.addEventListener("change", render);
-    filterStatus.addEventListener("change", render);
+    const html = `
+      <html lang="sv">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Tidrapport – kundunderlag</title>
+        <style>
+          body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 12px;
+            margin: 24px;
+          }
+          h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+          }
+          p {
+            margin: 0 0 12px;
+            color: #4b5563;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+          }
+          th, td {
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            text-align: left;
+          }
+          th {
+            background: #f3f4f6;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Tidrapport – kundunderlag</h1>
+        <p>
+          Underlag med dag-, kväll-, natt- och helgtimmar per användare.
+          OB‑procent visas inte, endast timmar och restid.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Användare</th>
+              <th>Projekt</th>
+              <th>Underprojekt</th>
+              <th>Start</th>
+              <th>Slut</th>
+              <th>Totalt (h)</th>
+              <th>Dag</th>
+              <th>Kväll</th>
+              <th>Natt</th>
+              <th>Helg</th>
+              <th>Restid (h)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
 
-    clearFiltersBtn.addEventListener("click", () => {
-      filterUser.value = "";
-      filterProject.value = "";
-      filterSubproject.value = "";
-      filterStatus.value = "";
-      render();
-    });
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+  });
 
-    // PDF export – alla attesterade (eller alla om inga attesterade)
-    document.getElementById("downloadPdfBtn").addEventListener("click", () => {
-      const attested = reports.filter((r) => r.status === "Attesterad");
-      const list = attested.length ? attested : reports;
-
-      if (!list.length) {
-        alert("Det finns inga tidrapporter att skriva ut.");
-        return;
-      }
-
-      let rowsHtml = "";
-      list.forEach((r) => {
-        const ob = splitObHours(r);
-        const totalHours = parseFloat(r.timmar || "0") || 0;
-        const travel = parseFloat(r.restid || "0") || 0;
-
-        const projectName = getProjectName(r);
-        const subProjectName = getSubProjectName(r);
-
-        rowsHtml += `
-          <tr>
-            <td>${r.datum || "-"}</td>
-            <td>${(r.userName || "").replace(/</g, "&lt;")}</td>
-            <td>${projectName.replace(/</g, "&lt;")}</td>
-            <td>${(subProjectName || "").replace(/</g, "&lt;")}</td>
-            <td>${r.starttid || "-"}</td>
-            <td>${r.sluttid || "-"}</td>
-            <td>${totalHours.toFixed(1)}</td>
-            <td>${ob.dag.toFixed(1)}</td>
-            <td>${ob.kväll.toFixed(1)}</td>
-            <td>${ob.natt.toFixed(1)}</td>
-            <td>${ob.helg.toFixed(1)}</td>
-            <td>${travel.toFixed(1)}</td>
-          </tr>
-        `;
-      });
-
-      const win = window.open("", "_blank");
-      if (!win) {
-        alert("Popup blockerad – tillåt popup för att skapa PDF.");
-        return;
-      }
-
-      const html = `
-        <html lang="sv">
-        <head>
-          <meta charset="UTF-8" />
-          <title>Tidrapport – kundunderlag</title>
-          <style>
-            body {
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-              font-size: 12px;
-              margin: 24px;
-            }
-            h1 {
-              font-size: 20px;
-              margin-bottom: 4px;
-            }
-            p {
-              margin: 0 0 12px;
-              color: #4b5563;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 8px;
-            }
-            th, td {
-              padding: 6px 8px;
-              border: 1px solid #d1d5db;
-              text-align: left;
-            }
-            th {
-              background: #f3f4f6;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Tidrapport – kundunderlag</h1>
-          <p>
-            Underlag med dag-, kväll-, natt- och helgtimmar per användare.
-            OB‑procent visas inte, endast timmar och restid.
-          </p>
-          <table>
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Användare</th>
-                <th>Projekt</th>
-                <th>Underprojekt</th>
-                <th>Start</th>
-                <th>Slut</th>
-                <th>Totalt (h)</th>
-                <th>Dag</th>
-                <th>Kväll</th>
-                <th>Natt</th>
-                <th>Helg</th>
-                <th>Restid (h)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
-
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      win.print();
-    });
-
-    // Init
-    buildFilterOptions();
-    render();
-  </script>
+  buildFilterOptions();
+  render();
+</script>
 </body>
 </html>

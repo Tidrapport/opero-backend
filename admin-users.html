@@ -221,13 +221,13 @@
       <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
 
-    <div class="nav-section-title admin-only">Administration</div>
-    <a href="admin.html" class="nav-item admin-only">Attestering</a>
-    <a href="projects.html" class="nav-item admin-only">Projekt</a>
-    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="admin-users.html" class="nav-item admin-only active">Användare</a>
+    <div class="nav-section-title">Administration</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
+    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item active">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -248,13 +248,13 @@
         <h2>Befintliga användare</h2>
         <table>
           <thead>
-            <tr>
-              <th>Namn</th>
-              <th>E-post</th>
-              <th>Roll</th>
-              <th>Telefon</th>
-              <th>Åtgärder</th>
-            </tr>
+          <tr>
+            <th>Namn</th>
+            <th>E-post</th>
+            <th>Roll</th>
+            <th>Telefon</th>
+            <th>Åtgärder</th>
+          </tr>
           </thead>
           <tbody id="usersBody"></tbody>
         </table>
@@ -318,26 +318,25 @@
 
   <script src="auth.js"></script>
   <script>
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "login.html";
-    }
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("currentUser");
-      window.location.href = "login.html";
-    });
-
+    // --- Auth / header ---
     const currentUser = requireLogin();
-    setupSidebarForUser(currentUser);
-
-    // Endast admin får vara här
     if (!isAdmin(currentUser)) {
       alert("Endast admin har åtkomst till denna sida.");
       window.location.href = "dashboard.html";
     }
+    setupSidebarForUser(currentUser);
 
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("selectedCompany");
+      localStorage.removeItem("role");
+      localStorage.removeItem("name");
+      localStorage.removeItem("email");
+      window.location.href = "login.html";
+    });
+
+    // --- Rendera användare ---
     const usersBody = document.getElementById("usersBody");
     const noUsers = document.getElementById("noUsers");
 
@@ -365,14 +364,14 @@
           <td>${user.phone || "-"}</td>
           <td>
             ${
-              user.email === "${ADMIN_EMAIL}"
+              user.email === ADMIN_EMAIL
                 ? "<small>Standard-admin</small>"
                 : '<button type="button" class="btn-small delete">Ta bort</button>'
             }
           </td>
         `;
 
-        if (user.email !== "${ADMIN_EMAIL}") {
+        if (user.email !== ADMIN_EMAIL) {
           const deleteBtn = tr.querySelector(".btn-small.delete");
           deleteBtn.addEventListener("click", () => {
             if (!confirm("Ta bort användaren " + (fullName || user.email) + "?")) return;
@@ -386,7 +385,7 @@
       });
     }
 
-    // Form logik
+    // --- Form-logik ---
     const userForm = document.getElementById("userForm");
     const firstNameInput = document.getElementById("firstName");
     const lastNameInput = document.getElementById("lastName");
@@ -401,7 +400,7 @@
       passwordInput.value = pwd;
     });
 
-    userForm.addEventListener("submit", (e) => {
+    userForm.addEventListener("submit", e => {
       e.preventDefault();
 
       const firstName = firstNameInput.value.trim();
@@ -418,7 +417,7 @@
 
       let users = getUsers();
       if (users.some(u => u.email === email)) {
-        alert("Det finns redan en användare med den e-postadressen.");
+        alert("Det finns redan en användare med den e‑postadressen.");
         return;
       }
 
@@ -443,6 +442,7 @@
       passwordInput.value = "";
     });
 
+    // Första render
     renderUsers();
   </script>
 </body>

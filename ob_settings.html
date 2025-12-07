@@ -182,56 +182,57 @@
   </style>
 </head>
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h2 id="sidebarCompanyName">Admina Bas</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <h2>Admina Bas</h2>
 
-    <div class="nav-section">
-      <a href="dashboard.html" class="nav-item">Översikt</a>
-      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-      <a href="#" class="nav-item">Planering</a>
-      <a href="deviations.html" class="nav-item">Avvikelser</a>
-      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
-      <a href="#" class="nav-item">Kontakter</a>
+  <div class="nav-section">
+    <a href="dashboard.html" class="nav-item">Översikt</a>
+    <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+    <a href="planning.html" class="nav-item">Planering</a>
+    <a href="deviations.html" class="nav-item">Avvikelser</a>
+    <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+    <a href="contacts.html" class="nav-item">Kontakter</a>
+  </div>
+
+  <div class="nav-section-title admin-only">Administration</div>
+  <a href="admin.html" class="nav-item admin-only">Attestering</a>
+  <a href="projects.html" class="nav-item admin-only">Projekt</a>
+  <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+  <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+  <a href="ob_settings.html" class="nav-item admin-only active">OB-inställningar</a>
+  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Rail Work AB</h1>
+      <small>OB-inställningar – multiplikatorer för dag/kväll/natt/helg</small>
+    </div>
+    <div class="welcome" id="welcomeText">Välkommen</div>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h2>OB-inställningar</h2>
+      <p>Styr hur timmar fördelas på dag, kväll, natt och helg samt OB‑påslag.</p>
+    </div>
+    <button class="btn-secondary" id="resetDefaultsBtn">Återställ standard</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Skifttyper</div>
+    <div class="helper">
+      Detta motsvarar tabellen <span class="badge">shift_types_config</span> i din Supabase databas.
+      I denna demo sparas allt lokalt i webbläsaren.
     </div>
 
-    <div class="nav-section-title">Administration</div>
-    <a href="admin.html" class="nav-item">Attestering</a>
-    <a href="projects.html" class="nav-item">Projekt</a>
-    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item active">OB-inställningar</a>
-
-    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <h1 id="companyTitle">Rail Work AB</h1>
-        <small>OB-inställningar – multiplikatorer för dag/kväll/natt/helg</small>
-      </div>
-      <div class="welcome" id="welcomeText">Välkommen</div>
-    </div>
-
-    <div class="page-header">
-      <div>
-        <h2>OB-inställningar</h2>
-        <p>Styr hur timmar fördelas på dag, kväll, natt och helg samt OB‑påslag.</p>
-      </div>
-      <button class="btn-secondary" id="resetDefaultsBtn">Återställ standard</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Skifttyper</div>
-      <div class="helper">
-        Detta motsvarar tabellen <span class="badge">shift_types_config</span> i din Supabase databas.
-        I denna demo sparas allt lokalt i webbläsaren.
-      </div>
-
-      <table>
-        <thead>
+    <table>
+      <thead>
         <tr>
           <th>Skifttyp</th>
           <th>Beskrivning</th>
@@ -240,14 +241,14 @@
           <th>Multiplikator</th>
           <th>Åtgärder</th>
         </tr>
-        </thead>
-        <tbody id="obTableBody"></tbody>
-      </table>
+      </thead>
+      <tbody id="obTableBody"></tbody>
+    </table>
 
-      <h4 style="margin-top:16px; margin-bottom:6px;">Lägg till skifttyp</h4>
-      <div style="overflow-x:auto;">
-        <table>
-          <tbody>
+    <h4 style="margin-top:16px; margin-bottom:6px;">Lägg till skifttyp</h4>
+    <div style="overflow-x:auto;">
+      <table>
+        <tbody>
           <tr>
             <td style="width:140px;">
               <select id="newType">
@@ -273,165 +274,172 @@
               <button class="btn-primary" id="addRowBtn">Lägg till</button>
             </td>
           </tr>
-          </tbody>
-        </table>
-      </div>
+        </tbody>
+      </table>
     </div>
-  </main>
+  </div>
+</main>
 
-  <script>
-    const OB_KEY = "obSettings";
-
-    // Auth
-    const token = localStorage.getItem("token");
-    const companyId = localStorage.getItem("company_id");
-    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
-    const userName = localStorage.getItem("user_name") || "admin";
-
-    if (!companyId) {
-      window.location.href = "company-select.html";
-    } else if (!token) {
-      window.location.href = "login.html";
+<script src="auth.js"></script>
+<script>
+  (function syncUser() {
+    const raw = localStorage.getItem("user");
+    if (raw && !localStorage.getItem("currentUser")) {
+      try {
+        const u = JSON.parse(raw);
+        const mapped = {
+          ...u,
+          firstName: u.firstName || u.first_name || "",
+          lastName: u.lastName || u.last_name || ""
+        };
+        setCurrentUser(mapped);
+      } catch (e) {}
     }
+  })();
 
-    document.getElementById("companyTitle").textContent = companyName;
-    document.getElementById("sidebarCompanyName").textContent = companyName;
-    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+  const currentUser = requireLogin();
+  setupSidebarForUser(currentUser);
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_name");
-      localStorage.removeItem("user_role");
-      window.location.href = "login.html";
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  });
+
+  if (!isAdmin(currentUser)) {
+    alert("Endast admin har åtkomst till denna sida.");
+    window.location.href = "dashboard.html";
+  }
+
+  const OB_KEY = "obSettings";
+
+  function defaultObSettings() {
+    return [
+      {
+        id: "day",
+        shift_type: "day",
+        description: "Dag",
+        start_hour: 6,
+        end_hour: 18,
+        multiplier: 1.0
+      },
+      {
+        id: "evening",
+        shift_type: "evening",
+        description: "Kväll",
+        start_hour: 18,
+        end_hour: 21,
+        multiplier: 1.29
+      },
+      {
+        id: "night",
+        shift_type: "night",
+        description: "Natt",
+        start_hour: 21,
+        end_hour: 6,
+        multiplier: 1.63
+      },
+      {
+        id: "weekend",
+        shift_type: "weekend",
+        description: "Helg",
+        start_hour: 0,
+        end_hour: 0,
+        multiplier: 2.13
+      }
+    ];
+  }
+
+  let settings = JSON.parse(localStorage.getItem(OB_KEY) || "null");
+  if (!settings || !Array.isArray(settings) || !settings.length) {
+    settings = defaultObSettings();
+    localStorage.setItem(OB_KEY, JSON.stringify(settings));
+  }
+
+  const obTableBody = document.getElementById("obTableBody");
+  const resetDefaultsBtn = document.getElementById("resetDefaultsBtn");
+  const addRowBtn = document.getElementById("addRowBtn");
+
+  function saveSettings() {
+    localStorage.setItem(OB_KEY, JSON.stringify(settings));
+  }
+
+  function renderTable() {
+    obTableBody.innerHTML = "";
+    settings.forEach((row, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.shift_type}</td>
+        <td><input type="text" value="${row.description || ""}" data-idx="${idx}" data-field="description" /></td>
+        <td><input type="number" min="0" max="23" value="${row.start_hour}" data-idx="${idx}" data-field="start_hour" /></td>
+        <td><input type="number" min="0" max="23" value="${row.end_hour}" data-idx="${idx}" data-field="end_hour" /></td>
+        <td><input type="number" step="0.01" value="${row.multiplier}" data-idx="${idx}" data-field="multiplier" /></td>
+        <td><button class="btn-small delete" data-idx="${idx}">Ta bort</button></td>
+      `;
+      obTableBody.appendChild(tr);
     });
 
-    function defaultObSettings() {
-      return [
-        {
-          id: "day",
-          shift_type: "day",
-          description: "Dag",
-          start_hour: 6,
-          end_hour: 18,
-          multiplier: 1.0,
-        },
-        {
-          id: "evening",
-          shift_type: "evening",
-          description: "Kväll",
-          start_hour: 18,
-          end_hour: 21,
-          multiplier: 1.29,
-        },
-        {
-          id: "night",
-          shift_type: "night",
-          description: "Natt",
-          start_hour: 21,
-          end_hour: 6,
-          multiplier: 1.63,
-        },
-        {
-          id: "weekend",
-          shift_type: "weekend",
-          description: "Helg",
-          start_hour: 0,
-          end_hour: 0,
-          multiplier: 2.13,
-        },
-      ];
-    }
-
-    let settings = JSON.parse(localStorage.getItem(OB_KEY) || "null");
-    if (!settings || !Array.isArray(settings) || !settings.length) {
-      settings = defaultObSettings();
-      localStorage.setItem(OB_KEY, JSON.stringify(settings));
-    }
-
-    const obTableBody = document.getElementById("obTableBody");
-    const resetDefaultsBtn = document.getElementById("resetDefaultsBtn");
-    const addRowBtn = document.getElementById("addRowBtn");
-
-    function saveSettings() {
-      localStorage.setItem(OB_KEY, JSON.stringify(settings));
-    }
-
-    function renderTable() {
-      obTableBody.innerHTML = "";
-      settings.forEach((row, idx) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row.shift_type}</td>
-          <td><input type="text" value="${row.description || ""}" data-idx="${idx}" data-field="description" /></td>
-          <td><input type="number" min="0" max="23" value="${row.start_hour}" data-idx="${idx}" data-field="start_hour" /></td>
-          <td><input type="number" min="0" max="23" value="${row.end_hour}" data-idx="${idx}" data-field="end_hour" /></td>
-          <td><input type="number" step="0.01" value="${row.multiplier}" data-idx="${idx}" data-field="multiplier" /></td>
-          <td><button class="btn-small delete" data-idx="${idx}">Ta bort</button></td>
-        `;
-        obTableBody.appendChild(tr);
+    obTableBody.querySelectorAll("input").forEach((inp) => {
+      inp.addEventListener("change", (e) => {
+        const idx = Number(e.target.dataset.idx);
+        const field = e.target.dataset.field;
+        let val = e.target.value;
+        if (field === "start_hour" || field === "end_hour") {
+          val = Number(val || 0);
+        }
+        if (field === "multiplier") {
+          val = Number(val || 1);
+        }
+        settings[idx][field] = val;
+        saveSettings();
       });
-
-      obTableBody.querySelectorAll("input").forEach(inp => {
-        inp.addEventListener("change", (e) => {
-          const idx = Number(e.target.dataset.idx);
-          const field = e.target.dataset.field;
-          let val = e.target.value;
-          if (field === "start_hour" || field === "end_hour") {
-            val = Number(val || 0);
-          }
-          if (field === "multiplier") {
-            val = Number(val || 1);
-          }
-          settings[idx][field] = val;
-          saveSettings();
-        });
-      });
-
-      obTableBody.querySelectorAll("button.delete").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const idx = Number(e.target.dataset.idx);
-          if (!confirm("Ta bort denna OB‑rad?")) return;
-          settings.splice(idx, 1);
-          saveSettings();
-          renderTable();
-        });
-      });
-    }
-
-    resetDefaultsBtn.addEventListener("click", () => {
-      if (!confirm("Återställ till standardvärden?")) return;
-      settings = defaultObSettings();
-      saveSettings();
-      renderTable();
     });
 
-    addRowBtn.addEventListener("click", () => {
-      const type = document.getElementById("newType").value;
-      const description = document.getElementById("newDescription").value.trim();
-      const start = Number(document.getElementById("newStart").value || 0);
-      const end = Number(document.getElementById("newEnd").value || 0);
-      const mult = Number(document.getElementById("newMultiplier").value || 1);
-
-      settings.push({
-        id: type + "_" + Math.random().toString(36).slice(2),
-        shift_type: type,
-        description: description || type,
-        start_hour: start,
-        end_hour: end,
-        multiplier: mult,
+    obTableBody.querySelectorAll("button.delete").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const idx = Number(e.target.dataset.idx);
+        if (!confirm("Ta bort denna OB‑rad?")) return;
+        settings.splice(idx, 1);
+        saveSettings();
+        renderTable();
       });
-
-      saveSettings();
-      renderTable();
-
-      document.getElementById("newDescription").value = "";
-      document.getElementById("newStart").value = "";
-      document.getElementById("newEnd").value = "";
-      document.getElementById("newMultiplier").value = "";
     });
+  }
 
+  resetDefaultsBtn.addEventListener("click", () => {
+    if (!confirm("Återställ till standardvärden?")) return;
+    settings = defaultObSettings();
+    saveSettings();
     renderTable();
-  </script>
+  });
+
+  addRowBtn.addEventListener("click", () => {
+    const type = document.getElementById("newType").value;
+    const description = document.getElementById("newDescription").value.trim();
+    const start = Number(document.getElementById("newStart").value || 0);
+    const end = Number(document.getElementById("newEnd").value || 0);
+    const mult = Number(document.getElementById("newMultiplier").value || 1);
+
+    settings.push({
+      id: type + "_" + Math.random().toString(36).slice(2),
+      shift_type: type,
+      description: description || type,
+      start_hour: start,
+      end_hour: end,
+      multiplier: mult
+    });
+
+    saveSettings();
+    renderTable();
+
+    document.getElementById("newDescription").value = "";
+    document.getElementById("newStart").value = "";
+    document.getElementById("newEnd").value = "";
+    document.getElementById("newMultiplier").value = "";
+  });
+
+  renderTable();
+</script>
 </body>
 </html>
