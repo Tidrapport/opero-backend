@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kontakter – Användare</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      background: #f3f4f6;
+    }
+    .sidebar {
+      width: 240px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+    .nav-section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-top: 12px;
+    }
+    .nav-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .nav-item.active { background: #1d4ed8; }
+    .nav-item:hover { background: #111827; }
+    .logout {
+      margin-top: auto;
+      font-size: 13px;
+      color: #f97373;
+      cursor: pointer;
+    }
+
+    .main { flex: 1; padding: 24px 32px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .topbar h1 { margin: 0; font-size: 22px; }
+    .topbar small { color: #6b7280; }
+    .welcome { font-size: 14px; color: #374151; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+    .badge-empty {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+    .role-badge {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 11px;
+      text-transform: capitalize;
+      background: #f9fafb;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>Admina Bas</h2>
+
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="planning.html" class="nav-item">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+      <a href="contacts.html" class="nav-item active">Kontakter</a>
+    </div>
+
+    <div class="nav-section-title admin-only">Administration</div>
+    <a href="admin.html" class="nav-item admin-only">Attestering</a>
+    <a href="projects.html" class="nav-item admin-only">Projekt</a>
+    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Kontakter</h1>
+        <small>Visa alla användare i Rail Work AB</small>
+      </div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
+    </div>
+
+    <section class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Namn</th>
+            <th>Roll</th>
+            <th>Telefon</th>
+            <th>E-post</th>
+          </tr>
+        </thead>
+        <tbody id="contactsBody"></tbody>
+      </table>
+      <div id="noContacts" class="badge-empty" style="display:none;">
+        Inga användare hittades. Be admin lägga till användare.
+      </div>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    });
+
+    const currentUser = requireLogin();
+    setupSidebarForUser(currentUser);
+
+    const contactsBody = document.getElementById("contactsBody");
+    const noContacts = document.getElementById("noContacts");
+
+    function renderContacts() {
+      const users = getUsers();
+      contactsBody.innerHTML = "";
+
+      if (!users.length) {
+        noContacts.style.display = "block";
+        return;
+      } else {
+        noContacts.style.display = "none";
+      }
+
+      users.forEach(user => {
+        const tr = document.createElement("tr");
+        const fullName =
+          (user.firstName || "") +
+          (user.lastName ? " " + user.lastName : "");
+
+        tr.innerHTML = `
+          <td>${fullName || "-"}</td>
+          <td><span class="role-badge">${user.role || "-"}</span></td>
+          <td>${user.phone || "-"}</td>
+          <td>${user.email || "-"}</td>
+        `;
+
+        contactsBody.appendChild(tr);
+      });
+    }
+
+    renderContacts();
+  </script>
+</body>
+</html>

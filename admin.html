@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Rail Work AB – Attestering</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * {
       box-sizing: border-box;
@@ -220,20 +219,24 @@
 <body>
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <h2 id="sidebarCompanyName">Admina Bas</h2>
+    <h2>Admina Bas</h2>
 
     <div class="nav-section">
       <a href="dashboard.html" class="nav-item">Översikt</a>
       <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-      <a href="#" class="nav-item">Planering</a>
-      <a href="#" class="nav-item">Avvikelser</a>
-      <a href="#" class="nav-item">Lönöversikt</a>
-      <a href="#" class="nav-item">Kontakter</a>
+      <a href="planning.html" class="nav-item">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+      <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
 
-    <div class="nav-section-title">Administration</div>
-    <a href="admin.html" class="nav-item active">Attestering</a>
-    <a href="projects.html" class="nav-item">Projekt</a>
+    <div class="nav-section-title admin-only">Administration</div>
+    <a href="admin.html" class="nav-item admin-only active">Attestering</a>
+    <a href="projects.html" class="nav-item admin-only">Projekt</a>
+    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -242,7 +245,7 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <h1 id="companyTitle">Rail Work AB</h1>
+        <h1>Rail Work AB</h1>
         <small>Attestering av tidrapporter</small>
       </div>
       <div class="welcome" id="welcomeText">Välkommen</div>
@@ -322,34 +325,25 @@
     </div>
   </main>
 
+  <script src="auth.js"></script>
   <script>
-    const STORAGE_KEY = "timeReports";
-    const PROJECTS_KEY = "projects";
-    const SUBPROJECTS_KEY = "subProjects";
+    const currentUser = requireLogin();
+    setupSidebarForUser(currentUser);
 
-    // 🔐 Auth
-    const token = localStorage.getItem("token");
-    const companyId = localStorage.getItem("company_id");
-    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
-    const userName = localStorage.getItem("user_name") || "attest‑admin";
-
-    if (!companyId) {
-      window.location.href = "company-select.html";
-    } else if (!token) {
-      window.location.href = "login.html";
+    if (!isAdmin(currentUser)) {
+      alert("Endast admin har åtkomst till denna sida.");
+      window.location.href = "dashboard.html";
     }
-
-    document.getElementById("companyTitle").textContent = companyName;
-    document.getElementById("sidebarCompanyName").textContent = companyName;
-    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_name");
-      localStorage.removeItem("user_role");
+      localStorage.removeItem("currentUser");
       window.location.href = "login.html";
     });
+
+    const STORAGE_KEY = "timeReports";
+    const PROJECTS_KEY = "projects";
+    const SUBPROJECTS_KEY = "subProjects";
 
     let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
@@ -377,6 +371,7 @@
       const dow = dateObj.getDay();
       const hour = dateObj.getHours();
 
+      // Helg: fre 18:00 -> mån 06:00
       if (
         (dow === 5 && hour >= 18) ||
         dow === 6 ||
@@ -516,7 +511,7 @@
 
       const filtered = getFilteredReports();
 
-      filtered.forEach((r) => {
+      filtered.forEach((r, indexInFiltered) => {
         const realIndex = reports.indexOf(r);
 
         const ob = splitObHours(r);

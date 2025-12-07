@@ -304,130 +304,44 @@
   </main>
 
   <script>
-    const ROLES_KEY = "jobRoles";
+const JOB_ROLES_KEY = "jobRoles";
 
-    // Auth
-    const token = localStorage.getItem("token");
-    const companyId = localStorage.getItem("company_id");
-    const companyName = localStorage.getItem("company_name") || "Rail Work AB";
-    const userName = localStorage.getItem("user_name") || "admin";
+let jobRoles = JSON.parse(localStorage.getItem(JOB_ROLES_KEY) || "[]");
 
-    if (!companyId) {
-      window.location.href = "company-select.html";
-    } else if (!token) {
-      window.location.href = "login.html";
-    }
+function saveJobRoles() {
+  localStorage.setItem(JOB_ROLES_KEY, JSON.stringify(jobRoles));
+}
 
-    document.getElementById("companyTitle").textContent = companyName;
-    document.getElementById("sidebarCompanyName").textContent = companyName;
-    document.getElementById("welcomeText").textContent = "Välkommen, " + userName;
+// Exempel: lägg till ny roll (koppla knappen "Spara" till denna)
+function addJobRole(name, description) {
+  if (!name.trim()) return;
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_id");
-      localStorage.removeItem("user_name");
-      localStorage.removeItem("user_role");
-      window.location.href = "login.html";
-    });
+  jobRoles.push({
+    id: crypto.randomUUID(),   // unik ID
+    name: name.trim(),
+    description: description.trim(),
+    active: true
+  });
 
-    let roles = JSON.parse(localStorage.getItem(ROLES_KEY) || "[]");
+  saveJobRoles();
+  renderJobRolesTable();       // din egen funktion som ritar tabellen
+}
 
-    const roleForm = document.getElementById("roleForm");
-    const resetBtn = document.getElementById("resetBtn");
-    const rolesTableBody = document.getElementById("rolesTableBody");
-    const formTitle = document.getElementById("formTitle");
+// Exempel: toggla aktiv / inaktiv
+function toggleJobRoleActive(id) {
+  const role = jobRoles.find(r => r.id === id);
+  if (!role) return;
+  role.active = !role.active;
+  saveJobRoles();
+  renderJobRolesTable();
+}
 
-    function saveRoles() {
-      localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
-    }
-
-    function uuid() {
-      return "role_" + Math.random().toString(36).slice(2);
-    }
-
-    function renderTable() {
-      rolesTableBody.innerHTML = "";
-      roles.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.name}</td>
-          <td>${r.description || "-"}</td>
-          <td>
-            <span class="badge ${r.status === "aktiv" ? "badge-active" : "badge-inactive"}">
-              ${r.status === "aktiv" ? "Aktiv" : "Inaktiv"}
-            </span>
-          </td>
-          <td>
-            <div class="table-actions">
-              <button class="btn-small edit">Redigera</button>
-              <button class="btn-small delete">Ta bort</button>
-            </div>
-          </td>
-        `;
-
-        const editBtn = tr.querySelector(".btn-small.edit");
-        const deleteBtn = tr.querySelector(".btn-small.delete");
-
-        editBtn.addEventListener("click", () => {
-          document.getElementById("editRoleId").value = r.id;
-          document.getElementById("roleName").value = r.name;
-          document.getElementById("roleDescription").value = r.description || "";
-          document.getElementById("roleStatus").value = r.status || "aktiv";
-          formTitle.textContent = "Redigera yrkesroll";
-        });
-
-        deleteBtn.addEventListener("click", () => {
-          if (!confirm("Ta bort yrkesrollen?")) return;
-          roles = roles.filter(rr => rr.id !== r.id);
-          saveRoles();
-          renderTable();
-        });
-
-        rolesTableBody.appendChild(tr);
-      });
-    }
-
-    roleForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const id = document.getElementById("editRoleId").value;
-      const name = document.getElementById("roleName").value.trim();
-      const desc = document.getElementById("roleDescription").value.trim();
-      const status = document.getElementById("roleStatus").value;
-
-      if (!name) {
-        alert("Rollnamn krävs.");
-        return;
-      }
-
-      if (id) {
-        const idx = roles.findIndex(r => r.id === id);
-        if (idx !== -1) {
-          roles[idx] = { ...roles[idx], name, description: desc, status };
-        }
-      } else {
-        roles.push({
-          id: uuid(),
-          company_id: companyId,
-          name,
-          description: desc,
-          status,
-        });
-      }
-
-      saveRoles();
-      renderTable();
-      roleForm.reset();
-      document.getElementById("editRoleId").value = "";
-      formTitle.textContent = "Ny yrkesroll";
-    });
-
-    resetBtn.addEventListener("click", () => {
-      roleForm.reset();
-      document.getElementById("editRoleId").value = "";
-      formTitle.textContent = "Ny yrkesroll";
-    });
-
-    renderTable();
-  </script>
+// Exempel: ta bort roll
+function deleteJobRole(id) {
+  jobRoles = jobRoles.filter(r => r.id !== id);
+  saveJobRoles();
+  renderJobRolesTable();
+}
+</script>
 </body>
 </html>

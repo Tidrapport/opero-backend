@@ -2,253 +2,187 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Logga in – Tidrapporteringssystem</title>
+  <title>Logga in – Rail Work</title>
   <style>
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f3f4f6;
+      background: #0f172a;
     }
-
     .card {
-      width: 100%;
-      max-width: 520px;
       background: #ffffff;
-      border-radius: 18px;
-      padding: 32px 32px 28px;
-      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
-      text-align: left;
+      border-radius: 16px;
+      padding: 24px 24px 20px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 24px 60px rgba(15,23,42,0.6);
     }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .logo img {
-      max-height: 60px;
-    }
-
-    .system-title {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .system-title h1 {
-      margin: 8px 0 0;
+    h1 {
+      margin: 0 0 4px;
       font-size: 22px;
     }
-
-    .system-title p {
-      margin: 4px 0 0;
+    p.subtitle {
+      margin: 0 0 20px;
       font-size: 13px;
       color: #6b7280;
     }
-
-    .welcome-title {
-      font-size: 18px;
-      margin: 0 0 4px;
-    }
-
-    .welcome-sub {
-      margin: 0 0 18px;
-      font-size: 13px;
-      color: #6b7280;
-    }
-
-    .company-bar {
+    .field {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9fafb;
-      border-radius: 12px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px;
       font-size: 13px;
     }
-
-    .company-bar span {
-      display: block;
-    }
-
-    .btn-link {
-      border: none;
-      background: transparent;
-      color: #1d4ed8;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 13px;
+    .field label {
       color: #374151;
     }
-
-    .field {
-      margin-bottom: 14px;
-      font-size: 14px;
-    }
-
-    input[type="email"],
-    input[type="password"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
+    .field input {
+      padding: 8px 10px;
+      border-radius: 8px;
       border: 1px solid #d1d5db;
-      font-size: 14px;
+      font-size: 13px;
     }
-
-    .field-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .field input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb25;
     }
-
-    .forgot-link {
-      font-size: 12px;
-      color: #1d4ed8;
-      cursor: pointer;
-    }
-
     .btn-primary {
       width: 100%;
-      margin-top: 8px;
-      padding: 11px 18px;
+      padding: 9px 16px;
       border-radius: 999px;
       border: none;
-      background: linear-gradient(to right, #1d4ed8, #1e40af);
-      color: white;
-      font-size: 15px;
+      background: #1d4ed8;
+      color: #fff;
       font-weight: 500;
+      font-size: 14px;
       cursor: pointer;
+      margin-top: 4px;
     }
-
+    .btn-primary:hover {
+      background: #1e40af;
+    }
+    .error {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #b91c1c;
+      min-height: 16px;
+    }
     .footer {
-      text-align: center;
-      margin-top: 16px;
+      margin-top: 14px;
       font-size: 11px;
       color: #9ca3af;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">
-      <!-- statisk logga, byt till riktig bild om du vill -->
-      <!-- <img src="rail-work-logo.png" alt="Rail Work AB" /> -->
-    </div>
-
-    <div class="system-title">
-      <h1>Tidrapporteringssystem</h1>
-      <p id="loginSubtitle">Logga in</p>
-    </div>
-
-    <h2 class="welcome-title">Välkommen</h2>
-    <p class="welcome-sub" id="welcomeText">Logga in till valt företag</p>
-
-    <div class="company-bar">
-      <div>
-        <span style="font-size:11px; color:#6b7280;">Inloggning till</span>
-        <span id="companyDisplay" style="font-weight:500;">-</span>
-      </div>
-      <button class="btn-link" id="changeCompanyBtn">Byt företag</button>
-    </div>
+    <h1>Admina Bas</h1>
+    <p class="subtitle">Logga in med din e‑postadress och lösenord.</p>
 
     <form id="loginForm">
       <div class="field">
         <label for="email">E‑post</label>
-        <input type="email" id="email" placeholder="din@epost.se" required />
+        <input type="email" id="email" required placeholder="namn@företag.se" />
       </div>
-
       <div class="field">
-        <div class="field-row">
-          <label for="password">Lösenord</label>
-          <span class="forgot-link" id="forgotPasswordLink">Glömt lösenord?</span>
-        </div>
+        <label for="password">Lösenord</label>
         <input type="password" id="password" required />
       </div>
-
       <button type="submit" class="btn-primary">Logga in</button>
+      <div id="error" class="error"></div>
     </form>
 
-    <div class="footer">Systemadministratör</div>
+    <div class="footer">
+      Rail Work AB – intern plattform
+    </div>
   </div>
 
   <script>
-    // Läs valt företag
-    const companyName = localStorage.getItem("company_name");
-    const companyCode = localStorage.getItem("company_code");
-    const companyId = localStorage.getItem("company_id");
+    const API_BASE = "http://localhost:3000"; // samma som din backend
 
-    if (!companyId) {
-      // Om inget företag valt → tillbaka till företagssidan
-      window.location.href = "company-select.html";
-    }
+    const form = document.getElementById("loginForm");
+    const errorEl = document.getElementById("error");
 
-    const companyDisplay = document.getElementById("companyDisplay");
-    const loginSubtitle = document.getElementById("loginSubtitle");
-    const welcomeText = document.getElementById("welcomeText");
-
-    companyDisplay.textContent = companyName || "-";
-    loginSubtitle.textContent = companyName
-      ? `Logga in till ${companyName}`
-      : "Logga in";
-    welcomeText.textContent = companyName
-      ? `Logga in till ${companyName}`
-      : "Logga in till valt företag";
-
-    // Byt företag
-    document.getElementById("changeCompanyBtn").addEventListener("click", () => {
-      localStorage.removeItem("company_id");
-      localStorage.removeItem("company_name");
-      localStorage.removeItem("company_code");
-      localStorage.removeItem("company_expire");
-      window.location.href = "company-select.html";
-    });
-
-    // Glömt lösenord (placeholder)
-    document.getElementById("forgotPasswordLink").addEventListener("click", () => {
-      alert("I den riktiga versionen skickas en återställningslänk via e‑post.\nHär i prototypen är detta bara en knapp.");
-    });
-
-    // Simulerad login
-    document.getElementById("loginForm").addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      errorEl.textContent = "";
 
       const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+      const password = document.getElementById("password").value;
 
       if (!email || !password) {
-        alert("Fyll i e‑post och lösenord.");
+        errorEl.textContent = "Fyll i både e‑post och lösenord.";
         return;
       }
 
-      // Här skulle Supabase Auth anropas i skarpa systemet.
-      // Vi simulerar inloggning med localStorage.
-      const userId = crypto.randomUUID();
-      const userName = email.split("@")[0];
+      try {
+        const res = await fetch(API_BASE + "/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: email, // backend använder "username" – vi kör e‑post som username
+            password,
+          }),
+        });
 
-      localStorage.setItem("user_id", userId);
-      localStorage.setItem("user_email", email);
-      localStorage.setItem("user_name", userName);
-      localStorage.setItem("token", "SESSION_" + Date.now());
+        const data = await res.json();
 
-      // I skarpa systemet används profilens roll.
-      // Här kan du sätta admin/user manuellt om du vill:
-      // localStorage.setItem("user_role", "admin");
+        if (!res.ok) {
+          errorEl.textContent = data.error || "Inloggningen misslyckades.";
+          return;
+        }
 
-      window.location.href = "dashboard.html";
+        // Spara token
+        localStorage.setItem("token", data.token || "");
+
+        // Hämta ev. användare från localStorage (appUsers)
+        const appUsers = JSON.parse(localStorage.getItem("appUsers") || "[]");
+        const userFromList = appUsers.find(u => u.email === email);
+
+        let role = "Anställd";
+        let firstName = "";
+        let lastName = "";
+        let phone = "";
+
+        if (userFromList) {
+          role = userFromList.role || "Anställd";
+          firstName = userFromList.firstName || "";
+          lastName = userFromList.lastName || "";
+          phone = userFromList.phone || "";
+        }
+
+        // Hårdkodad admin-e‑post om nödvändigt
+        if (email === "edgar@test.se") {
+          role = "Admin";
+        }
+
+        const currentUser = {
+          email,
+          role,
+          firstName,
+          lastName,
+          phone,
+        };
+
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+        // Redirect – både admin och användare börjar på dashboard
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = "Tekniskt fel. Försök igen.";
+      }
     });
   </script>
 </body>
