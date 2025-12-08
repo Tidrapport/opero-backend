@@ -248,13 +248,13 @@
         <h2>Befintliga användare</h2>
         <table>
           <thead>
-          <tr>
-            <th>Namn</th>
-            <th>E-post</th>
-            <th>Roll</th>
-            <th>Telefon</th>
-            <th>Åtgärder</th>
-          </tr>
+            <tr>
+              <th>Namn</th>
+              <th>E-post</th>
+              <th>Roll</th>
+              <th>Telefon</th>
+              <th>Åtgärder</th>
+            </tr>
           </thead>
           <tbody id="usersBody"></tbody>
         </table>
@@ -316,6 +316,7 @@
     </div>
   </main>
 
+  <!-- auth.js måste laddas först -->
   <script src="auth.js"></script>
   <script>
     // --- Auth / header ---
@@ -336,15 +337,27 @@
       window.location.href = "login.html";
     });
 
-    // --- Rendera användare ---
     const usersBody = document.getElementById("usersBody");
     const noUsers = document.getElementById("noUsers");
 
-    function renderUsers() {
-      const users = getUsers();
+    const API_BASE_URL = typeof API_BASE !== "undefined" ? API_BASE : "http://localhost:3000";
+    const token = localStorage.getItem("token") || "";
+    const selectedCompany = JSON.parse(localStorage.getItem("selectedCompany") || "null");
+    const companyId =
+      (selectedCompany && (selectedCompany.id || selectedCompany.company_id)) ||
+      currentUser.company_id ||
+      null;
+
+    function createAuthHeaders() {
+      const h = { "Content-Type": "application/json" };
+      if (token) h["Authorization"] = "Bearer " + token;
+      return h;
+    }
+
+    function renderUsers(users) {
       usersBody.innerHTML = "";
 
-      if (!users.length) {
+      if (!users || !users.length) {
         noUsers.style.display = "block";
         return;
       } else {
@@ -354,8 +367,8 @@
       users.forEach(user => {
         const tr = document.createElement("tr");
         const fullName =
-          (user.firstName || "") +
-          (user.lastName ? " " + user.lastName : "");
+          (user.first_name || "") +
+          (user.last_name ? " " + user.last_name : "");
 
         tr.innerHTML = `
           <td>${fullName || "-"}</td>
@@ -364,25 +377,63 @@
           <td>${user.phone || "-"}</td>
           <td>
             ${
-              user.email === ADMIN_EMAIL
-                ? "<small>Standard-admin</small>"
+              user.role === "admin" && user.email === currentUser.email
+                ? "<small>Du</small>"
                 : '<button type="button" class="btn-small delete">Ta bort</button>'
             }
           </td>
         `;
 
-        if (user.email !== ADMIN_EMAIL) {
-          const deleteBtn = tr.querySelector(".btn-small.delete");
-          deleteBtn.addEventListener("click", () => {
+        const deleteBtn = tr.querySelector(".btn-small.delete");
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", async () => {
             if (!confirm("Ta bort användaren " + (fullName || user.email) + "?")) return;
-            const list = getUsers().filter(u => u.id !== user.id);
-            saveUsers(list);
-            renderUsers();
+
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/admin/users/${user.id}`,
+                {
+                  method: "DELETE",
+                  headers: createAuthHeaders()
+                }
+              );
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                alert(data.error || "Kunde inte ta bort användaren.");
+                return;
+              }
+              await loadUsers();
+            } catch (err) {
+              console.error(err);
+              alert("Tekniskt fel vid borttagning.");
+            }
           });
         }
 
         usersBody.appendChild(tr);
       });
+    }
+
+    async function loadUsers() {
+      try {
+        const url =
+          companyId != null
+            ? `${API_BASE_URL}/admin/users?company_id=${companyId}`
+            : `${API_BASE_URL}/admin/users`;
+
+        const res = await fetch(url, { headers: createAuthHeaders() });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error("Fel vid hämtning av users:", data);
+          alert(data.error || "Kunde inte hämta användare.");
+          return;
+        }
+        const users = await res.json();
+        renderUsers(users);
+      } catch (err) {
+        console.error(err);
+        alert("Tekniskt fel vid hämtning av användare.");
+      }
     }
 
     // --- Form-logik ---
@@ -395,55 +446,87 @@
     const passwordInput = document.getElementById("password");
     const generatePwdBtn = document.getElementById("generatePwdBtn");
 
+    // Om du har generatePassword i auth.js använder vi den, annars enkel fallback
+    function fallbackGeneratePassword(len) {
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let pwd = "";
+      for (let i = 0; i < len; i++) {
+        pwd += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return pwd;
+    }
+
+    function makePassword(len) {
+      try {
+        if (typeof generatePassword === "function") {
+          return generatePassword(len);
+        }
+      } catch (_) {}
+      return fallbackGeneratePassword(len);
+    }
+
     generatePwdBtn.addEventListener("click", () => {
-      const pwd = generatePassword(12);
+      const pwd = makePassword(12);
       passwordInput.value = pwd;
     });
 
-    userForm.addEventListener("submit", e => {
+    userForm.addEventListener("submit", async e => {
       e.preventDefault();
 
-      const firstName = firstNameInput.value.trim();
-      const lastName = lastNameInput.value.trim();
+      const first_name = firstNameInput.value.trim();
+      const last_name = lastNameInput.value.trim();
       const email = emailInput.value.trim().toLowerCase();
       const phone = phoneInput.value.trim();
       const role = roleSelect.value;
       const password = passwordInput.value.trim();
 
-      if (!firstName || !lastName || !email || !password) {
+      if (!first_name || !last_name || !email || !password) {
         alert("Fyll i alla obligatoriska fält.");
         return;
       }
 
-      let users = getUsers();
-      if (users.some(u => u.email === email)) {
-        alert("Det finns redan en användare med den e‑postadressen.");
+      if (!companyId) {
+        alert("Ingen company_id hittades. Logga in igen.");
         return;
       }
 
-      const newUser = {
-        id: Date.now(),
-        firstName,
-        lastName,
-        email,
-        phone,
-        role,
-        password
-      };
+      try {
+        const res = await fetch(`${API_BASE_URL}/admin/users`, {
+          method: "POST",
+          headers: createAuthHeaders(),
+          body: JSON.stringify({
+            first_name,
+            last_name,
+            email,
+            phone,
+            role,
+            password,
+            company_id: companyId
+          })
+        });
 
-      users.push(newUser);
-      saveUsers(users);
-      renderUsers();
+        const data = await res.json().catch(() => ({}));
 
-      alert("Användare skapad! Ge lösenordet till användaren: " + password);
+        if (!res.ok) {
+          alert(data.error || "Kunde inte skapa användare.");
+          return;
+        }
 
-      userForm.reset();
-      roleSelect.value = "anställd";
-      passwordInput.value = "";
+        alert("Användare skapad! Ge lösenordet till användaren: " + password);
+
+        userForm.reset();
+        roleSelect.value = "anställd";
+        passwordInput.value = "";
+
+        await loadUsers();
+      } catch (err) {
+        console.error(err);
+        alert("Tekniskt fel vid skapande av användare.");
+      }
     });
 
-    // Första render
-    renderUsers();
+    // Första hämtning
+    loadUsers();
   </script>
 </body>
 </html>
