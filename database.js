@@ -109,6 +109,38 @@ db.serialize(() => {
       }
     }
   );
+
+  // Skapa Lukas (admin) om saknas – efterfrågad testanvändare
+  const lukasEmail = "lukas@test.se";
+  const lukasPasswordPlain = "1234";
+
+  db.get(
+    `SELECT id FROM users WHERE email = ?`,
+    [lukasEmail],
+    (err, row) => {
+      if (err) {
+        console.error("Kunde inte läsa Lukas-användare:", err);
+        return;
+      }
+
+      if (!row) {
+        const hash = bcrypt.hashSync(lukasPasswordPlain, 10);
+        db.run(
+          `INSERT INTO users
+            (username, email, password, role, company_id, first_name, last_name, phone)
+           VALUES (?, ?, ?, 'admin', 1, 'Lukas', '', '');`,
+          [lukasEmail, lukasEmail, hash],
+          (err2) => {
+            if (err2) {
+              console.error("Kunde inte skapa Lukas-användare:", err2);
+            } else {
+              console.log("Admin-användare skapad: lukas@test.se / 1234");
+            }
+          }
+        );
+      }
+    }
+  );
 });
 
 module.exports = db;
