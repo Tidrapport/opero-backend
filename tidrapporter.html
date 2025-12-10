@@ -192,6 +192,86 @@
       color: #6b7280;
       margin-top: 8px;
     }
+
+    .time-input-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .time-picker {
+      flex: 1;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      max-width: 120px;
+    }
+
+    .time-picker-display {
+      padding: 6px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      background: #f9fafb;
+      border-bottom: 1px solid #d1d5db;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .time-picker-scroll-container {
+      display: flex;
+      height: 100px;
+      overflow: hidden;
+    }
+
+    .time-picker-scroll {
+      flex: 1;
+      overflow-y: scroll;
+      padding: 35px 0;
+      scroll-behavior: smooth;
+      scroll-snap-type: y mandatory;
+    }
+
+    .time-picker-scroll::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .time-picker-scroll::-webkit-scrollbar-track {
+      background: #f3f4f6;
+    }
+
+    .time-picker-scroll::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 2px;
+    }
+
+    .time-picker-option {
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #9ca3af;
+      scroll-snap-align: center;
+      cursor: pointer;
+    }
+
+    .time-picker-option.active {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .time-picker-divider {
+      width: 1px;
+      background: #e5e7eb;
+      margin: 0 2px;
+    }
   </style>
 </head>
 <body>
@@ -248,11 +328,17 @@
             </div>
             <div class="field">
               <label for="start">Starttid</label>
-              <input id="start" type="time" step="600" required />
+              <div class="time-input-wrapper">
+                <div id="startTimePicker" class="time-picker"></div>
+                <input id="start" type="hidden" required />
+              </div>
             </div>
             <div class="field">
               <label for="end">Sluttid</label>
-              <input id="end" type="time" step="600" required />
+              <div class="time-input-wrapper">
+                <div id="endTimePicker" class="time-picker"></div>
+                <input id="end" type="hidden" required />
+              </div>
             </div>
             <div class="field">
               <label for="jobRole">Yrkesroll</label>
@@ -673,13 +759,144 @@
     loadJobRoles();
     loadMaterialTypes();
     loadProjects();
-    ["start", "end"].forEach((id) => {
-      const el = document.getElementById(id);
-      el.addEventListener("change", () => {
-        const rounded = roundTimeToStep(el.value, 10);
-        if (rounded) el.value = rounded;
+
+    // ===== INITIALISERA SCROLL-TIDVÄLJARE =====
+    function initTimePicker(pickerId, inputId) {
+      const pickerEl = document.getElementById(pickerId);
+      const inputEl = document.getElementById(inputId);
+
+      // Skapa HTML för tidväljare
+      const displayDiv = document.createElement("div");
+      displayDiv.className = "time-picker-display";
+      displayDiv.textContent = "00:00";
+
+      const scrollContainer = document.createElement("div");
+      scrollContainer.className = "time-picker-scroll-container";
+
+      const hoursScroll = document.createElement("div");
+      hoursScroll.className = "time-picker-scroll";
+      hoursScroll.id = `${pickerId}-hours`;
+
+      const minutesScroll = document.createElement("div");
+      minutesScroll.className = "time-picker-scroll";
+      minutesScroll.id = `${pickerId}-minutes`;
+
+      // Timmar (01-24)
+      for (let h = 1; h <= 24; h++) {
+        const opt = document.createElement("div");
+        opt.className = "time-picker-option";
+        opt.textContent = String(h).padStart(2, "0");
+        opt.dataset.value = String(h).padStart(2, "0");
+        hoursScroll.appendChild(opt);
+      }
+
+      // Minuter (0-55 i 5-minuters intervall)
+      for (let m = 0; m < 60; m += 5) {
+        const opt = document.createElement("div");
+        opt.className = "time-picker-option";
+        opt.textContent = String(m).padStart(2, "0");
+        opt.dataset.value = String(m).padStart(2, "0");
+        minutesScroll.appendChild(opt);
+      }
+
+      scrollContainer.appendChild(hoursScroll);
+      scrollContainer.appendChild(minutesScroll);
+
+      pickerEl.appendChild(displayDiv);
+      pickerEl.appendChild(scrollContainer);
+
+      let selectedHour = "01";
+      let selectedMinute = "00";
+
+      function updateDisplay() {
+        displayDiv.textContent = `${selectedHour}:${selectedMinute}`;
+        inputEl.value = `${selectedHour}:${selectedMinute}`;
+      }
+
+      function scrollToOption(scroll, value) {
+        const options = scroll.querySelectorAll(".time-picker-option");
+        options.forEach(opt => opt.classList.remove("active"));
+
+        const targetOpt = Array.from(options).find(o => o.dataset.value === value);
+        if (targetOpt) {
+          targetOpt.classList.add("active");
+          const offsetTop = targetOpt.offsetTop - scroll.parentElement.clientHeight / 2 + targetOpt.clientHeight / 2;
+          scroll.scrollTop = offsetTop;
+        }
+      }
+
+      // Scroll-event för timmar
+      hoursScroll.addEventListener("scroll", () => {
+        const options = hoursScroll.querySelectorAll(".time-picker-option");
+        const scrollCenter = hoursScroll.scrollTop + hoursScroll.parentElement.clientHeight / 2;
+        
+        let closestOpt = options[0];
+        let minDist = Math.abs(closestOpt.offsetTop + closestOpt.clientHeight / 2 - scrollCenter);
+
+        options.forEach(opt => {
+          const optCenter = opt.offsetTop + opt.clientHeight / 2;
+          const dist = Math.abs(optCenter - scrollCenter);
+          if (dist < minDist) {
+            minDist = dist;
+            closestOpt = opt;
+          }
+        });
+
+        selectedHour = closestOpt.dataset.value;
+        hoursScroll.querySelectorAll(".time-picker-option").forEach(o => o.classList.remove("active"));
+        closestOpt.classList.add("active");
+        updateDisplay();
       });
-    });
+
+      // Scroll-event för minuter
+      minutesScroll.addEventListener("scroll", () => {
+        const options = minutesScroll.querySelectorAll(".time-picker-option");
+        const scrollCenter = minutesScroll.scrollTop + minutesScroll.parentElement.clientHeight / 2;
+        
+        let closestOpt = options[0];
+        let minDist = Math.abs(closestOpt.offsetTop + closestOpt.clientHeight / 2 - scrollCenter);
+
+        options.forEach(opt => {
+          const optCenter = opt.offsetTop + opt.clientHeight / 2;
+          const dist = Math.abs(optCenter - scrollCenter);
+          if (dist < minDist) {
+            minDist = dist;
+            closestOpt = opt;
+          }
+        });
+
+        selectedMinute = closestOpt.dataset.value;
+        minutesScroll.querySelectorAll(".time-picker-option").forEach(o => o.classList.remove("active"));
+        closestOpt.classList.add("active");
+        updateDisplay();
+      });
+
+      // Klick på option för snabbval
+      hoursScroll.querySelectorAll(".time-picker-option").forEach(opt => {
+        opt.addEventListener("click", () => {
+          selectedHour = opt.dataset.value;
+          scrollToOption(hoursScroll, selectedHour);
+          updateDisplay();
+        });
+      });
+
+      minutesScroll.querySelectorAll(".time-picker-option").forEach(opt => {
+        opt.addEventListener("click", () => {
+          selectedMinute = opt.dataset.value;
+          scrollToOption(minutesScroll, selectedMinute);
+          updateDisplay();
+        });
+      });
+
+      // Initiera
+      updateDisplay();
+      scrollToOption(hoursScroll, selectedHour);
+      scrollToOption(minutesScroll, selectedMinute);
+    }
+
+    initTimePicker("startTimePicker", "start");
+    initTimePicker("endTimePicker", "end");
+
     renderMaterialsTable();
     renderReportsList();
   </script>
