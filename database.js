@@ -77,6 +77,43 @@ db.serialize(() => {
      VALUES (1, 'Rail Work AB', 'RWA');`
   );
 
+  // --- Time reports ---
+  db.run(`
+    CREATE TABLE IF NOT EXISTS time_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      user_name TEXT,
+      datum TEXT NOT NULL,
+      starttid TEXT,
+      sluttid TEXT,
+      timmar REAL,
+      project_id INTEGER,
+      subproject_id INTEGER,
+      job_role_id INTEGER,
+      comment TEXT,
+      restid REAL DEFAULT 0,
+      status TEXT DEFAULT 'Ny',
+      attested_by INTEGER,
+      attested_at TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+  `);
+
+  // --- Report materials ---
+  db.run(`
+    CREATE TABLE IF NOT EXISTS report_materials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id INTEGER NOT NULL,
+      material_type_id INTEGER,
+      quantity REAL,
+      place TEXT,
+      FOREIGN KEY (report_id) REFERENCES time_reports(id) ON DELETE CASCADE,
+      FOREIGN KEY (material_type_id) REFERENCES material_types(id)
+    );
+  `);
+
   // Skapa admin‑användare om den inte finns
   const adminEmail = "edgar@test.se";
   const adminPasswordPlain = "1234";

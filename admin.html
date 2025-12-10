@@ -356,25 +356,69 @@
     window.location.href = "login.html";
   });
 
-  const STORAGE_KEY = "timeReports";
+  const STORAGE_KEY = "timeReports"; // kept for backward compatibility
   const PROJECTS_KEY = "projects";
   const SUBPROJECTS_KEY = "subProjects";
 
-  let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  let reports = [];
   let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
   let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
 
-  // Defaults
-  reports.forEach((r) => {
-    if (!r.status) r.status = "Ny";
-    if (!r.userName) r.userName = "";
-    if (r.restid === undefined) r.restid = 0;
-    if (r.rast === undefined) r.rast = 0;
-  });
-  saveReports();
+  const API_TOKEN = localStorage.getItem("token") || null;
 
   function saveReports() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    } catch (e) {
+      console.warn("Kunde inte spara lokalt fallback:", e);
+    }
+  }
+
+  function apiFetch(path, opts = {}) {
+    opts.headers = opts.headers || {};
+    if (API_TOKEN) opts.headers["Authorization"] = `Bearer ${API_TOKEN}`;
+    if (opts.body && typeof opts.body === "object" && !(opts.body instanceof FormData)) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(opts.body);
+    }
+    return fetch(path, opts).then((r) => r.json().catch(() => ({})));
+  }
+
+  // Load reports from backend (admin sees all)
+  async function loadReportsFromServer() {
+    let loaded = [];
+    try {
+      const res = await fetch("/time-reports", {
+        headers: API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {}
+      });
+      if (!res.ok) {
+        console.error("Kunde inte hämta tidrapporter från servern", res.status);
+        loaded = [];
+      } else {
+        loaded = await res.json();
+      }
+    } catch (e) {
+      console.error("Network error när tidrapporter hämtades:", e);
+      loaded = [];
+    }
+
+    // Om inget kom från servern, fall tillbaka på lokalt sparade rapporter
+    if (!Array.isArray(loaded) || loaded.length === 0) {
+      loaded = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    }
+
+    reports = loaded;
+
+    // Normalisera och defaults
+    reports.forEach((r) => {
+      if (!r.status) r.status = "Ny";
+      if (!r.userName && r.user_name) r.userName = r.user_name;
+      if (r.restid === undefined) r.restid = 0;
+      if (r.rast === undefined) r.rast = 0;
+    });
+
+    buildFilterOptions();
+    render();
   }
 
   function parseDate(dateStr) {
@@ -412,6 +456,17 @@
     const roundedHours = roundedMinutes / 60;
 
     return roundedHours > 0 ? parseFloat(roundedHours.toFixed(2)) : 0;
+  }
+
+  function roundTimeToStep(timeStr, stepMinutes = 10) {
+    if (!timeStr) return "";
+    const [h, m] = timeStr.split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return "";
+    const totalMinutes = h * 60 + m;
+    const rounded = Math.round(totalMinutes / stepMinutes) * stepMinutes;
+    const rHours = Math.floor(rounded / 60) % 24;
+    const rMinutes = rounded % 60;
+    return `${String(rHours).padStart(2, "0")}:${String(rMinutes).padStart(2, "0")}`;
   }
 
   function getObCategory(dateObj) {
@@ -570,20 +625,18 @@
       const subProjectName = getSubProjectName(r);
 
       tr.innerHTML = `
-        <td>${r.datum || "-"}</td>
-        <td>
-          <input class="name-input" type="text" value="${r.userName || ""}" />
-        </td>
-        <td>${projectName}</td>
-        <td>${subProjectName || "-"}</td>
-        <td>${r.starttid || "-"}</td>
-        <td>${r.sluttid || "-"}</td>
-        <td>${totalHours.toFixed(1)}</td>
+        <td><input type="date" class="row-input date" value="${r.datum || ""}" disabled /></td>
+        <td><input class="row-input name-input" type="text" value="${r.userName || ""}" disabled /></td>
+        <td><input class="row-input project-input" type="text" value="${projectName}" disabled /></td>
+        <td><input class="row-input subproject-input" type="text" value="${subProjectName || ""}" disabled /></td>
+        <td><input type="time" step="600" class="row-input start-input" value="${r.starttid || ""}" disabled /></td>
+        <td><input type="time" step="600" class="row-input end-input" value="${r.sluttid || ""}" disabled /></td>
+        <td class="total-hours">${totalHours.toFixed(1)}</td>
         <td>${ob.dag.toFixed(1)}</td>
         <td>${ob.kväll.toFixed(1)}</td>
         <td>${ob.natt.toFixed(1)}</td>
         <td>${ob.helg.toFixed(1)}</td>
-        <td>${travel.toFixed(1)}</td>
+        <td><input type="number" step="0.1" min="0" class="row-input travel-input" value="${travel.toFixed(1)}" disabled /></td>
         <td>
           <span class="status-badge ${
             r.status === "Attesterad" ? "status-attesterad" : "status-ny"
@@ -593,6 +646,8 @@
         </td>
         <td>
           <div class="actions">
+            <button class="btn-small edit">Redigera</button>
+            <button class="btn-small save" disabled>Spara</button>
             <button class="btn-small attest">
               ${r.status === "Attesterad" ? "Ta bort attest" : "Attestera"}
             </button>
@@ -601,31 +656,117 @@
         </td>
       `;
 
-      const nameInput = tr.querySelector(".name-input");
-      nameInput.addEventListener("change", () => {
-        reports[realIndex].userName = nameInput.value.trim();
-        saveReports();
-        buildFilterOptions();
-      });
-
       const attestBtn = tr.querySelector(".btn-small.attest");
-      attestBtn.addEventListener("click", () => {
-        if (reports[realIndex].status === "Attesterad") {
-          reports[realIndex].status = "Ny";
-        } else {
-          reports[realIndex].status = "Attesterad";
+      attestBtn.addEventListener("click", async () => {
+        const action = reports[realIndex].status === "Attesterad" ? "unattest" : "attest";
+        try {
+          await apiFetch(`/time-reports/${r.id}/attest`, { method: "POST", body: { action } });
+          // ladda om listan från server för korrekt status/metadata
+          await loadReportsFromServer();
+        } catch (e) {
+          console.error(e);
+          alert("Kunde inte ändra atteststatus.");
         }
-        saveReports();
-        render();
       });
 
       const deleteBtn = tr.querySelector(".btn-small.delete");
-      deleteBtn.addEventListener("click", () => {
+      deleteBtn.addEventListener("click", async () => {
         if (!confirm("Vill du ta bort den här tidrapporten?")) return;
-        reports.splice(realIndex, 1);
-        saveReports();
-        buildFilterOptions();
-        render();
+        try {
+          await fetch(`/time-reports/${r.id}`, { method: "DELETE", headers: API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {} });
+          await loadReportsFromServer();
+          buildFilterOptions();
+        } catch (e) {
+          console.error(e);
+          alert("Kunde inte radera tidrapporten.");
+        }
+      });
+
+      const editBtn = tr.querySelector(".btn-small.edit");
+      const saveBtn = tr.querySelector(".btn-small.save");
+      const inputs = tr.querySelectorAll(".row-input");
+
+      function setEditing(on) {
+        inputs.forEach((el) => (el.disabled = !on));
+        saveBtn.disabled = !on;
+        editBtn.textContent = on ? "Avbryt" : "Redigera";
+        tr.dataset.editing = on ? "1" : "0";
+      }
+      setEditing(false);
+
+      editBtn.addEventListener("click", () => {
+        const isEditing = tr.dataset.editing === "1";
+        if (isEditing) {
+          render();
+          return;
+        }
+        setEditing(true);
+      });
+
+      saveBtn.addEventListener("click", async () => {
+        const dateVal = tr.querySelector(".date").value;
+        const startEl = tr.querySelector(".start-input");
+        const endEl = tr.querySelector(".end-input");
+        const nameVal = tr.querySelector(".name-input").value.trim();
+        const projectVal = tr.querySelector(".project-input").value.trim();
+        const subVal = tr.querySelector(".subproject-input").value.trim();
+        const travelValRaw = tr.querySelector(".travel-input").value;
+
+        const roundedStart = roundTimeToStep(startEl.value, 10);
+        const roundedEnd = roundTimeToStep(endEl.value, 10);
+        startEl.value = roundedStart;
+        endEl.value = roundedEnd;
+
+        if (!dateVal || !roundedStart || !roundedEnd) {
+          alert("Fyll i datum, start och slut (10-minuterssteg).");
+          return;
+        }
+
+        const hoursVal = calcHours({
+          datum: dateVal,
+          starttid: roundedStart,
+          sluttid: roundedEnd,
+        });
+        if (!hoursVal || hoursVal <= 0) {
+          alert("Sluttid måste vara efter starttid (kan gå över midnatt).");
+          return;
+        }
+
+        const travelVal = parseFloat(travelValRaw || "0") || 0;
+
+        const payload = {
+          datum: dateVal,
+          starttid: roundedStart,
+          sluttid: roundedEnd,
+          timmar: hoursVal,
+          restid: travelVal,
+          user_name: nameVal,
+          projekt: projectVal,
+          projectName: projectVal,
+          subProjectName: subVal,
+        };
+
+        try {
+          await apiFetch(`/time-reports/${r.id}`, {
+            method: "PUT",
+            body: payload,
+          });
+          reports[realIndex] = {
+            ...reports[realIndex],
+            ...payload,
+            date: dateVal,
+            start: roundedStart,
+            end: roundedEnd,
+            hours: hoursVal,
+            userName: nameVal,
+          };
+          saveReports();
+          buildFilterOptions();
+          render();
+        } catch (e) {
+          console.error(e);
+          alert("Kunde inte spara ändringarna.");
+        }
       });
 
       tbody.appendChild(tr);
@@ -761,8 +902,8 @@
     win.print();
   });
 
-  buildFilterOptions();
-  render();
+  // Ladda rapporter från server och rendera
+  loadReportsFromServer();
 </script>
 </body>
 </html>
