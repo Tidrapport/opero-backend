@@ -73,7 +73,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
       gap: 20px;
       align-items: flex-start;
     }
@@ -83,6 +83,16 @@
       border-radius: 12px;
       padding: 16px 18px;
       box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    .card.underlag {
+      padding: 12px 14px;
+      background: #f9fafb;
+      box-shadow: 0 4px 12px rgba(15,23,42,0.05);
+    }
+
+    .card.summary {
+      padding: 20px 22px;
     }
 
     .card h2 {
@@ -126,6 +136,12 @@
       box-shadow: 0 0 0 1px #2563eb25;
     }
 
+    .readonly {
+      background: #f9fafb;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
     .btn-primary {
       margin-top: 14px;
       padding: 8px 16px;
@@ -143,16 +159,16 @@
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 6px;
+      gap: 12px;
+      margin-top: 10px;
     }
 
     .summary-item {
-      padding: 10px;
-      border-radius: 10px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      font-size: 13px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 14px;
     }
 
     .summary-item strong {
@@ -164,8 +180,14 @@
     }
 
     .summary-item span {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 600;
+    }
+
+    .muted {
+      color: #9ca3af;
+      font-size: 12px;
+      margin-top: 6px;
     }
 
     .note {
@@ -216,11 +238,11 @@
     </div>
 
     <div class="layout">
-      <section class="card">
+      <section class="card underlag">
         <h2>Underlag</h2>
-        <p>Beräkningarna baseras på dina rapporterade timmar denna månad.</p>
+        <p id="underlagIntro">Beräkningarna baseras på dina rapporterade timmar denna månad.</p>
 
-        <div class="field-grid">
+        <div class="field-grid" id="underlagFields">
           <div class="field">
             <label for="hourlyWage">Timlön (kr/h)</label>
             <input type="number" id="hourlyWage" value="200" min="0" step="1" />
@@ -240,12 +262,18 @@
         </div>
 
         <button class="btn-primary" id="recalcBtn">Räkna om lön</button>
-        <p class="note">
+        <p class="note" id="userNote">
           Detta är en förenklad uppskattning. Riktig lön beräknas i lönesystemet.
+        </p>
+        <p class="note" id="adminOnlyNote" style="display:none;">
+          Endast admin kan justera timlön och skatteunderlag. Kontakta admin för ändringar.
+        </p>
+        <p class="note" id="lockedNote" style="display:none;">
+          Lönedata är låsta. Be en admin uppdatera timlön och skattetabell.
         </p>
       </section>
 
-      <section class="card">
+      <section class="card summary">
         <h2>Sammanställning</h2>
         <div class="summary-grid">
           <div class="summary-item">
@@ -268,6 +296,11 @@
             <strong>Nettolön (ca)</strong>
             <span id="netPay">0 kr</span>
           </div>
+          <div class="summary-item" id="summarySem" style="display:none;">
+            <strong>Semesterersättning</strong>
+            <span id="semesterSummary">0 kr</span>
+            <div class="muted">Visas endast i PDF</div>
+          </div>
         </div>
 
         <p class="note">
@@ -276,9 +309,13 @@
         <ul>
           <li>Bruttolön = timlön × timmar</li>
           <li>Kommunalskatt = bruttolön × skatte%</li>
-          <li>Semesterersättning = bruttolön × 13%</li>
+          <li>Semesterersättning (sparas, ej i netto) = bruttolön × 13%</li>
           <li>Arbetsgivaravgifter = bruttolön × 31.42%</li>
         </ul>
+
+        <button class="btn-primary" id="downloadPdfBtn" style="margin-top:14px;">
+          Ladda ner lönespecifikation (PDF)
+        </button>
       </section>
     </div>
   </main>
@@ -287,6 +324,8 @@
   <script>
     const currentUser = requireLogin();
     setupSidebarForUser(currentUser);
+    const isAdminUser = isAdmin(currentUser);
+    const token = localStorage.getItem("token") || "";
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");
@@ -359,23 +398,143 @@
 
       const gross = hourlyWage * hours;
       const kommunal = gross * taxPercent;
-      const semester = gross * perDiemPercent;
+      const semester = gross * perDiemPercent; // sparas separat, inte del av brutto/netto
       const aga = gross * 0.3142;
-      const net = gross - kommunal;
+      const net = gross - kommunal; // semester läggs inte till nettot
 
       document.getElementById("grossPay").textContent = formatKr(gross);
       document.getElementById("kommunalskatt").textContent = formatKr(kommunal);
       document.getElementById("semesterersattning").textContent = formatKr(semester);
       document.getElementById("aga").textContent = formatKr(aga);
       document.getElementById("netPay").textContent = formatKr(net);
+      document.getElementById("semesterSummary").textContent = formatKr(semester);
+
+      return { hourlyWage, taxPercent, perDiemPercent, hours, gross, kommunal, semester, aga, net };
+    }
+
+    function lockForNonAdmin() {
+      if (isAdminUser) return;
+      const inputs = [
+        "hourlyWage",
+        "taxPercent",
+        "monthHours",
+        "perDiemPercent",
+      ].map((id) => document.getElementById(id));
+      inputs.forEach((el) => {
+        if (el) {
+          el.readOnly = true;
+          el.disabled = true;
+          el.classList.add("readonly");
+        }
+      });
+      const btn = document.getElementById("recalcBtn");
+      if (btn) btn.style.display = "none";
+      const note = document.getElementById("userNote");
+      const adminNote = document.getElementById("adminOnlyNote");
+      const lockedNote = document.getElementById("lockedNote");
+      if (note) note.style.display = "none";
+      if (adminNote) adminNote.style.display = "block";
+      if (lockedNote) lockedNote.style.display = "block";
+      const intro = document.getElementById("underlagIntro");
+      if (intro) intro.textContent = "Endast admin kan uppdatera underlaget.";
+      const fields = document.getElementById("underlagFields");
+      if (fields) fields.style.opacity = "0.6";
+      // Dölj semesterruta helt för användare
+      const semBox = document.getElementById("summarySem");
+      if (semBox) semBox.style.display = "none";
+    }
+
+    function applyUserHourly(user) {
+      if (!user) return;
+      if (user.hourly_wage !== undefined && user.hourly_wage !== null) {
+        const el = document.getElementById("hourlyWage");
+        if (el) {
+          el.value = Number(user.hourly_wage);
+        }
+      }
+    }
+
+    async function refreshCurrentUserFromBackend() {
+      if (!token) return;
+      try {
+        const res = await fetch("/me", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        if (!res.ok) return;
+        const user = await res.json();
+        applyUserHourly(user);
+        // spara i localStorage för andra sidor
+        localStorage.setItem("currentUser", JSON.stringify(user));
+      } catch (err) {
+        console.warn("Kunde inte hämta /me:", err);
+      }
     }
 
     // Init
+    applyUserHourly(currentUser);
     const autoHours = calcMonthHours();
     document.getElementById("monthHours").value = autoHours.toFixed(1);
     recalc();
 
     document.getElementById("recalcBtn").addEventListener("click", recalc);
+    lockForNonAdmin();
+    refreshCurrentUserFromBackend().then(() => recalc());
+
+    function formatDateRangeForMonth(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth();
+      const start = new Date(year, month, 1);
+      const end = new Date(year, month + 1, 0);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())} till ${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+    }
+
+    document.getElementById("downloadPdfBtn").addEventListener("click", () => {
+      const calc = recalc();
+      const now = new Date();
+      const periodText = formatDateRangeForMonth(now);
+      const win = window.open("", "_blank");
+      if (!win) {
+        alert("Popup blockerad – tillåt popup för att ladda ner PDF.");
+        return;
+      }
+
+      const html = `
+        <html lang="sv">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Lönespecifikation</title>
+          <style>
+            body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; }
+            h1 { margin: 0 0 8px; }
+            p { margin: 4px 0 12px; color: #4b5563; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { padding: 8px; border: 1px solid #e5e7eb; text-align: left; }
+            th { background: #f9fafb; text-transform: uppercase; font-size: 12px; color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          <h1>Lönespecifikation</h1>
+          <p>Period: ${periodText}</p>
+          <table>
+            <tbody>
+              <tr><th>Timlön</th><td>${calc.hourlyWage.toFixed(2)} kr</td></tr>
+              <tr><th>Timmar</th><td>${calc.hours.toFixed(1)} h</td></tr>
+              <tr><th>Bruttolön</th><td>${formatKr(calc.gross)}</td></tr>
+              <tr><th>Kommunalskatt</th><td>${formatKr(calc.kommunal)}</td></tr>
+              <tr><th>Semesterersättning (sparas)</th><td>${formatKr(calc.semester)}</td></tr>
+              <tr><th>Arbetsgivaravgifter</th><td>${formatKr(calc.aga)}</td></tr>
+              <tr><th>Nettolön (ca)</th><td>${formatKr(calc.net)}</td></tr>
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      win.print();
+    });
   </script>
 </body>
 </html>

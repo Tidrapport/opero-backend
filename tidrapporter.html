@@ -288,13 +288,13 @@
       <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
 
-    <div class="nav-section-title">Administration</div>
-    <a href="admin.html" class="nav-item">Attestering</a>
-    <a href="projects.html" class="nav-item">Projekt</a>
-    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
-    <a href="admin-users.html" class="nav-item">Användare</a>
+    <div class="nav-section-title admin-only">Administration</div>
+    <a href="admin.html" class="nav-item admin-only">Attestering</a>
+    <a href="projects.html" class="nav-item admin-only">Projekt</a>
+    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -414,6 +414,8 @@
               <th>Datum</th>
               <th>Projekt</th>
               <th>Yrkesroll</th>
+              <th>Status</th>
+              <th>Åtgärder</th>
               <th>Materialrader</th>
             </tr>
           </thead>
@@ -447,6 +449,7 @@
     const projectSelect = document.getElementById("projectSelect");
 
     let currentMaterials = [];
+    let editingReportId = null;
     const PROJECTS_KEY = "projects";
 
     // ===== HÄMTA YRKESROLLER (dropdown, ingen fri text) =====
@@ -636,6 +639,8 @@
           ? Number(normalized.timmar) || 0
           : computeHours(normalized.datum, normalized.starttid, normalized.sluttid);
 
+      normalized.status = normalized.status || "Ny";
+
       normalized.userName = normalized.userName || getUserName();
       normalized.projectId = normalized.projectId || normalized.projektId || "";
       normalized.projectName =
@@ -678,14 +683,65 @@
       reports.forEach(rep => {
         const dateVal = rep.datum || rep.date || "-";
         const projectVal = rep.projekt || rep.projectName || rep.project || "-";
+        const statusVal = rep.status || "Ny";
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${dateVal}</td>
           <td>${projectVal}</td>
           <td>${rep.jobRoleName || "-"}</td>
+          <td>${statusVal}</td>
+          <td>
+            <button class="btn-small edit-report" data-id="${rep.id}" ${statusVal === "Attesterad" ? "disabled" : ""}>Redigera</button>
+            <button class="btn-small delete-report" data-id="${rep.id}" ${statusVal === "Attesterad" ? "disabled" : ""}>Ta bort</button>
+          </td>
           <td>${(rep.materials || []).length}</td>
         `;
         reportsBody.appendChild(tr);
+      });
+
+      reportsBody.querySelectorAll(".edit-report").forEach(btn => {
+        btn.addEventListener("click", (ev) => {
+          const id = ev.currentTarget.getAttribute("data-id");
+          const rep = reports.find(r => String(r.id) === String(id));
+          if (!rep) return;
+          if (rep.status === "Attesterad") {
+            alert("Attesterade rapporter kan inte redigeras.");
+            return;
+          }
+
+          editingReportId = rep.id;
+          document.getElementById("date").value = rep.datum || rep.date || "";
+          projectSelect.value = rep.projectId || "";
+          if (!projectSelect.value) {
+            // fallback: select by name if id missing
+            [...projectSelect.options].forEach(opt => {
+              if (opt.textContent === rep.projectName) projectSelect.value = opt.value;
+            });
+          }
+          jobRoleSelect.value = rep.jobRoleId || "";
+          document.getElementById("start").value = rep.starttid || rep.start || "";
+          document.getElementById("end").value = rep.sluttid || rep.end || "";
+          document.getElementById("comment").value = rep.comment || "";
+
+          currentMaterials = rep.materials || [];
+          renderMaterialsTable();
+        });
+      });
+
+      reportsBody.querySelectorAll(".delete-report").forEach(btn => {
+        btn.addEventListener("click", (ev) => {
+          const id = ev.currentTarget.getAttribute("data-id");
+          const idx = reports.findIndex(r => String(r.id) === String(id));
+          if (idx === -1) return;
+          if (reports[idx].status === "Attesterad") {
+            alert("Attesterade rapporter kan inte tas bort.");
+            return;
+          }
+          if (!confirm("Ta bort denna tidrapport?")) return;
+          reports.splice(idx, 1);
+          saveReportsToStorage(reports);
+          renderReportsList();
+        });
       });
     }
 
@@ -723,8 +779,8 @@
       const userName = getUserName();
 
       const reports = loadReportsFromStorage();
-      const report = {
-        id: Date.now(),
+      const baseReport = {
+        id: editingReportId || Date.now(),
         userId: currentUser?.id || null,
         userName,
         datum: date,
@@ -741,16 +797,31 @@
         timmar: hoursVal,
         hours: hoursVal,
         comment,
-        materials: currentMaterials
+        materials: currentMaterials,
       };
 
-      reports.push(report);
+      if (editingReportId) {
+        const idx = reports.findIndex(r => String(r.id) === String(editingReportId));
+        if (idx !== -1) {
+          if (reports[idx].status === "Attesterad") {
+            alert("Attesterad rapport kan inte redigeras.");
+            return;
+          }
+          reports[idx] = { ...reports[idx], ...baseReport, status: reports[idx].status || "Ny" };
+        } else {
+          reports.push({ ...baseReport, status: "Ny" });
+        }
+      } else {
+        reports.push({ ...baseReport, status: "Ny" });
+      }
+
       saveReportsToStorage(reports);
 
       alert("Tidrapport sparad lokalt inklusive materialförbrukning.");
 
       timeForm.reset();
       currentMaterials = [];
+      editingReportId = null;
       renderMaterialsTable();
       renderReportsList();
     });

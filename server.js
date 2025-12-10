@@ -110,7 +110,8 @@ app.post("/login", (req, res) => {
         role: user.role,
         company_id: user.company_id,
         first_name: user.first_name,
-        last_name: user.last_name
+        last_name: user.last_name,
+        hourly_wage: user.hourly_wage
       }
     });
   });
@@ -123,14 +124,14 @@ app.post("/login", (req, res) => {
 app.get("/admin/users", requireAdmin, (req, res) => {
   const { company_id } = req.query;
   let sql = `
-    SELECT id, username, email, role, company_id, first_name, last_name, phone
+    SELECT id, username, email, role, company_id, first_name, last_name, phone, hourly_wage
     FROM users
   `;
   const params = [];
   if (company_id) {
     sql += " WHERE company_id = ?";
     params.push(company_id);
-  }
+}
   sql += " ORDER BY first_name, last_name, email";
 
   db.all(sql, params, (err, rows) => {
@@ -151,7 +152,8 @@ app.post("/admin/users", requireAdmin, (req, res) => {
     phone = "",
     role = "user",
     password,
-    company_id
+    company_id,
+    hourly_wage = null
   } = req.body;
 
   if (!first_name || !last_name || !email || !password) {
@@ -165,8 +167,8 @@ app.post("/admin/users", requireAdmin, (req, res) => {
 
   db.run(
     `INSERT INTO users
-      (username, email, password, role, company_id, first_name, last_name, phone)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (username, email, password, role, company_id, first_name, last_name, phone, hourly_wage)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       username,
       cleanEmail,
@@ -175,7 +177,8 @@ app.post("/admin/users", requireAdmin, (req, res) => {
       company_id || null,
       first_name.trim(),
       last_name.trim(),
-      String(phone || "").trim()
+      String(phone || "").trim(),
+      hourly_wage !== undefined && hourly_wage !== null && hourly_wage !== "" ? Number(hourly_wage) : null
     ],
     function (err) {
       if (err) {
@@ -194,10 +197,70 @@ app.post("/admin/users", requireAdmin, (req, res) => {
         company_id: company_id || null,
         first_name: first_name.trim(),
         last_name: last_name.trim(),
-        phone: String(phone || "").trim()
+        phone: String(phone || "").trim(),
+        hourly_wage:
+          hourly_wage !== undefined && hourly_wage !== null && hourly_wage !== ""
+            ? Number(hourly_wage)
+            : null
       });
     }
   );
+});
+
+// Uppdatera användare (admin) – t.ex. timlön, roll, telefon
+app.put("/admin/users/:id", requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const {
+    first_name,
+    last_name,
+    phone,
+    role,
+    hourly_wage
+  } = req.body;
+
+  const fields = [];
+  const params = [];
+
+  if (first_name !== undefined) {
+    fields.push("first_name = ?");
+    params.push(first_name.trim());
+  }
+  if (last_name !== undefined) {
+    fields.push("last_name = ?");
+    params.push(last_name.trim());
+  }
+  if (phone !== undefined) {
+    fields.push("phone = ?");
+    params.push(String(phone || "").trim());
+  }
+  if (role !== undefined) {
+    fields.push("role = ?");
+    params.push(String(role).toLowerCase());
+  }
+  if (hourly_wage !== undefined) {
+    fields.push("hourly_wage = ?");
+    params.push(
+      hourly_wage !== null && hourly_wage !== "" ? Number(hourly_wage) : null
+    );
+  }
+
+  if (!fields.length) {
+    return res.status(400).json({ error: "Inget att uppdatera." });
+  }
+
+  params.push(id);
+
+  const sql = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
+  db.run(sql, params, function (err) {
+    if (err) {
+      console.error("DB-fel vid PUT /admin/users/:id:", err);
+      return res.status(500).json({ error: "Kunde inte uppdatera användare." });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "Användaren hittades inte." });
+    }
+    res.json({ success: true });
+  });
 });
 
 // Ta bort användare (admin)
@@ -218,6 +281,24 @@ app.delete("/admin/users/:id", requireAdmin, (req, res) => {
       }
 
       res.json({ success: true });
+    }
+  );
+});
+
+// Hämta inloggad användare (token)
+app.get("/me", requireAuth, (req, res) => {
+  db.get(
+    `SELECT id, username, email, role, company_id, first_name, last_name, phone, hourly_wage
+     FROM users
+     WHERE id = ?`,
+    [req.user.id],
+    (err, row) => {
+      if (err) {
+        console.error("DB-fel vid GET /me:", err);
+        return res.status(500).json({ error: "Kunde inte hämta användare." });
+      }
+      if (!row) return res.status(404).json({ error: "Användaren finns inte." });
+      res.json(row);
     }
   );
 });
@@ -354,6 +435,24 @@ app.delete("/material-types/:id", (req, res) => {
       }
 
       res.json({ success: true });
+    }
+  );
+});
+
+// ======================
+//   KONTAKTER (alla användare)
+// ======================
+app.get("/contacts", (req, res) => {
+  db.all(
+    `SELECT id, first_name, last_name, role, email, phone
+     FROM users
+     ORDER BY first_name, last_name, email`,
+    (err, rows) => {
+      if (err) {
+        console.error("DB-fel vid GET /contacts:", err);
+        return res.status(500).json({ error: "Kunde inte hämta kontakter." });
+      }
+      res.json(rows || []);
     }
   );
 });

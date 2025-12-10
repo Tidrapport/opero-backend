@@ -273,6 +273,20 @@
         </div>
 
         <div class="field">
+          <label for="devProject">Projekt</label>
+          <select id="devProject" required>
+            <option value="">Välj projekt</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="devSubproject">Underprojekt</label>
+          <select id="devSubproject">
+            <option value="">Välj underprojekt (valfritt)</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label for="devSeverity">Allvarlighetsgrad</label>
           <select id="devSeverity">
             <option value="low">Låg</option>
@@ -289,6 +303,16 @@
             <option value="in_progress">Pågår</option>
             <option value="resolved">Åtgärdad</option>
           </select>
+        </div>
+
+        <div class="field">
+          <label for="devReport">Koppla till tidrapport</label>
+          <select id="devReport">
+            <option value="">Välj tidrapport</option>
+          </select>
+          <div class="helper">
+            Välj den tidrapport (datum/projekt) avvikelsen gäller. Om listan är tom saknas sparade tidrapporter.
+          </div>
         </div>
 
         <div class="field">
@@ -321,6 +345,8 @@
           <tr>
             <th>Datum</th>
             <th>Rubrik</th>
+            <th>Projekt</th>
+            <th>Underprojekt</th>
             <th>Allvarlighetsgrad</th>
             <th>Status</th>
             <th>Bild</th>
@@ -375,17 +401,103 @@
   // Avvikelse‑logik
   const DEV_KEY = "deviations";
   let deviations = JSON.parse(localStorage.getItem(DEV_KEY) || "[]");
+  const PROJECTS_KEY = "projects";
+  const SUBPROJECTS_KEY = "subProjects";
+  const REPORTS_KEY = "timeReports";
 
   const deviationForm = document.getElementById("deviationForm");
   const devImageInput = document.getElementById("devImage");
   const devPreview = document.getElementById("devPreview");
   const devTableBody = document.getElementById("devTableBody");
+  const devProject = document.getElementById("devProject");
+  const devSubproject = document.getElementById("devSubproject");
+  const devReport = document.getElementById("devReport");
 
   let currentImageData = null;
+  let projects = [];
+  let subProjects = [];
+  let reports = [];
 
   function saveDeviations() {
     localStorage.setItem(DEV_KEY, JSON.stringify(deviations));
   }
+
+  function loadProjects() {
+    try {
+      projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+      subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+    } catch {
+      projects = [];
+      subProjects = [];
+    }
+
+    devProject.innerHTML = '<option value="">Välj projekt</option>';
+    projects.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name || "Namnlöst projekt";
+      opt.dataset.name = p.name || "";
+      devProject.appendChild(opt);
+    });
+
+    devProject.disabled = projects.length === 0;
+    renderSubProjects();
+  }
+
+  function loadReports() {
+    try {
+      reports = JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]");
+    } catch {
+      reports = [];
+    }
+
+    devReport.innerHTML = '<option value="">Välj tidrapport</option>';
+    reports
+      .filter((r) => !currentUser.id || r.userId === currentUser.id || r.user_id === currentUser.id)
+      .forEach((r) => {
+        const dateVal = r.datum || r.date || "";
+        const proj = r.projekt || r.projectName || r.project || "";
+        const start = r.starttid || r.start || "";
+        const end = r.sluttid || r.end || "";
+        const labelParts = [dateVal, proj, start && end ? `${start}-${end}` : ""].filter(Boolean);
+        const label = labelParts.join(" • ");
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = label || "Tidrapport";
+        opt.dataset.label = label;
+        devReport.appendChild(opt);
+      });
+
+    devReport.disabled = devReport.options.length <= 1;
+  }
+
+  function ensureProjectSelected() {
+    if (projects.length === 0) {
+      alert("Det finns inga projekt. Lägg till projekt först på Projektsidan.");
+      return false;
+    }
+    return true;
+  }
+
+  function renderSubProjects() {
+    const selectedProject = devProject.value;
+    devSubproject.innerHTML =
+      '<option value="">Välj underprojekt (valfritt)</option>';
+
+    const filtered = subProjects.filter(
+      (sp) => !selectedProject || sp.projectId === selectedProject
+    );
+
+    filtered.forEach((sp) => {
+      const opt = document.createElement("option");
+      opt.value = sp.id;
+      opt.textContent = sp.name || "Namnlöst";
+      opt.dataset.name = sp.name || "";
+      devSubproject.appendChild(opt);
+    });
+  }
+
+  devProject.addEventListener("change", renderSubProjects);
 
   function renderTable() {
     devTableBody.innerHTML = "";
@@ -419,6 +531,9 @@
         tr.innerHTML = `
           <td>${d.date || "-"}</td>
           <td>${d.title || ""}</td>
+          <td>${d.projectName || "-"}</td>
+          <td>${d.subProjectName || "-"}</td>
+          <td>${d.reportLabel || "-"}</td>
           <td><span class="badge ${sevBadgeClass}">${severityText}</span></td>
           <td><span class="badge ${statusClass}">${statusText}</span></td>
           <td>${d.image ? "<img src='" + d.image + "' class='img-thumb' />" : "-"}</td>
@@ -447,14 +562,36 @@
   deviationForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
+    if (!ensureProjectSelected()) return;
+
     const date = document.getElementById("devDate").value;
     const title = document.getElementById("devTitle").value.trim();
     const severity = document.getElementById("devSeverity").value;
     const status = document.getElementById("devStatus").value;
     const description = document.getElementById("devDescription").value.trim();
+    const projectId = devProject.value;
+    const projectName =
+      devProject.options[devProject.selectedIndex]?.dataset.name ||
+      devProject.options[devProject.selectedIndex]?.textContent ||
+      "";
+    const subProjectId = devSubproject.value;
+    const subProjectName =
+      devSubproject.options[devSubproject.selectedIndex]?.dataset.name ||
+      devSubproject.options[devSubproject.selectedIndex]?.textContent ||
+      "";
+    const reportId = devReport.value;
+    const reportLabel =
+      devReport.options[devReport.selectedIndex]?.dataset.label ||
+      devReport.options[devReport.selectedIndex]?.textContent ||
+      "";
 
-    if (!date || !title || !description) {
-      alert("Datum, rubrik och beskrivning krävs.");
+    if (!date || !title || !description || !projectId) {
+      alert("Datum, rubrik, projekt och beskrivning krävs.");
+      return;
+    }
+
+    if (devReport.options.length > 1 && !reportId) {
+      alert("Välj tidrapport att koppla till (om listan finns).");
       return;
     }
 
@@ -468,6 +605,12 @@
       severity,
       status,
       description,
+      projectId,
+      projectName,
+      subProjectId,
+      subProjectName,
+      reportId,
+      reportLabel,
       image: currentImageData,
       created_at: Date.now()
     };
@@ -483,6 +626,8 @@
 
   // init default datum
   document.getElementById("devDate").value = new Date().toISOString().slice(0, 10);
+  loadProjects();
+  loadReports();
   renderTable();
 </script>
 </body>

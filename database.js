@@ -29,10 +29,29 @@ db.serialize(() => {
       first_name TEXT,
       last_name  TEXT,
       phone      TEXT,
+      hourly_wage REAL,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (company_id) REFERENCES companies(id)
     );
   `);
+
+  // Lägg till "hourly_wage" om den saknas
+  db.all(`PRAGMA table_info(users);`, (err, columns) => {
+    if (err) {
+      console.error("Kunde inte läsa schema för users:", err);
+      return;
+    }
+    const hasHourly = columns.some((col) => col.name === "hourly_wage");
+    if (!hasHourly) {
+      db.run(`ALTER TABLE users ADD COLUMN hourly_wage REAL;`, (alterErr) => {
+        if (alterErr) {
+          console.error("Kunde inte lägga till kolumnen hourly_wage:", alterErr);
+        } else {
+          console.log('Kolumnen "hourly_wage" har lagts till i users.');
+        }
+      });
+    }
+  });
 
   // --- Job roles (Yrkesroller) ---
   db.run(`

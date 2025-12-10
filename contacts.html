@@ -168,35 +168,42 @@
     const contactsBody = document.getElementById("contactsBody");
     const noContacts = document.getElementById("noContacts");
 
-    function renderContacts() {
-      const users = getUsers();
+    async function loadContacts() {
       contactsBody.innerHTML = "";
+      try {
+        const res = await fetch("/contacts", {
+          headers: token ? { Authorization: "Bearer " + token } : {}
+        });
+        if (!res.ok) throw new Error("Fel vid hämtning av kontakter");
+        const users = await res.json();
 
-      if (!users.length) {
-        noContacts.style.display = "block";
-        return;
-      } else {
+        if (!users.length) {
+          noContacts.style.display = "block";
+          return;
+        }
         noContacts.style.display = "none";
+
+        users.forEach((user) => {
+          const fullName =
+            (user.first_name || "") +
+            (user.last_name ? " " + user.last_name : "");
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${fullName || "-"}</td>
+            <td><span class="role-badge">${user.role || "-"}</span></td>
+            <td>${user.phone || "-"}</td>
+            <td>${user.email || "-"}</td>
+          `;
+          contactsBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+        noContacts.textContent = "Kunde inte hämta kontakter.";
+        noContacts.style.display = "block";
       }
-
-      users.forEach(user => {
-        const tr = document.createElement("tr");
-        const fullName =
-          (user.firstName || "") +
-          (user.lastName ? " " + user.lastName : "");
-
-        tr.innerHTML = `
-          <td>${fullName || "-"}</td>
-          <td><span class="role-badge">${user.role || "-"}</span></td>
-          <td>${user.phone || "-"}</td>
-          <td>${user.email || "-"}</td>
-        `;
-
-        contactsBody.appendChild(tr);
-      });
     }
 
-    renderContacts();
+    loadContacts();
   </script>
 </body>
 </html>

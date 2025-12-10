@@ -118,6 +118,27 @@
       color: #6b7280;
     }
 
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .actions .btn-small {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .actions .btn-small.edit { background: #e0e7ff; color: #1d4ed8; border-color: #c7d2fe; }
+    .actions .btn-small.attest { background: #e0f2fe; color: #075985; border-color: #bfdbfe; }
+    .actions .btn-small.delete { background: #fee2e2; color: #b91c1c; border-color: #fecdd3; }
+    .actions .btn-small.save { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .actions .btn-small.view-comment { background: #f8fafc; color: #0f172a; border-color: #e2e8f0; }
+
     .name-input {
       width: 120px;
       padding: 4px 6px;
@@ -272,6 +293,13 @@
       </label>
 
       <label>
+        Kund
+        <select id="filterCustomer">
+          <option value="">Alla kunder</option>
+        </select>
+      </label>
+
+      <label>
         Projekt
         <select id="filterProject">
           <option value="">Alla projekt</option>
@@ -302,16 +330,19 @@
         <tr>
           <th>Datum</th>
           <th>Användare</th>
+          <th>Kund</th>
           <th>Projekt</th>
           <th>Underprojekt</th>
+          <th>Avvikelser</th>
+          <th>Kommentar</th>
           <th>Start</th>
           <th>Slut</th>
           <th>Totalt (h)</th>
-          <th>Dag</th>
-          <th>Kväll</th>
-          <th>Natt</th>
-          <th>Helg</th>
-          <th>Restid (h)</th>
+          <th>OB dag</th>
+          <th>OB kväll</th>
+          <th>OB natt</th>
+          <th>OB helg</th>
+          <th>Restid</th>
           <th>Status</th>
           <th>Åtgärder</th>
         </tr>
@@ -359,10 +390,12 @@
   const STORAGE_KEY = "timeReports"; // kept for backward compatibility
   const PROJECTS_KEY = "projects";
   const SUBPROJECTS_KEY = "subProjects";
+  const DEVIATIONS_KEY = "deviations";
 
   let reports = [];
   let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
   let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+  let deviations = [];
 
   const API_TOKEN = localStorage.getItem("token") || null;
 
@@ -371,6 +404,14 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
     } catch (e) {
       console.warn("Kunde inte spara lokalt fallback:", e);
+    }
+  }
+
+  function loadDeviations() {
+    try {
+      deviations = JSON.parse(localStorage.getItem(DEVIATIONS_KEY) || "[]");
+    } catch {
+      deviations = [];
     }
   }
 
@@ -418,6 +459,7 @@
     });
 
     buildFilterOptions();
+    loadDeviations();
     render();
   }
 
@@ -523,6 +565,7 @@
 
   const tbody = document.getElementById("reportsBody");
   const filterUser = document.getElementById("filterUser");
+  const filterCustomer = document.getElementById("filterCustomer");
   const filterProject = document.getElementById("filterProject");
   const filterSubproject = document.getElementById("filterSubproject");
   const filterStatus = document.getElementById("filterStatus");
@@ -549,7 +592,24 @@
     subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
 
     const currentProjValue = filterProject.value;
+    const currentCustomerValue = filterCustomer.value;
     const currentSubValue = filterSubproject.value;
+
+    // Kunder
+    const customerSet = new Set();
+    projects.forEach((p) => {
+      if (p.customer || p.customer_name) {
+        customerSet.add(p.customer || p.customer_name);
+      }
+    });
+    filterCustomer.innerHTML = '<option value="">Alla kunder</option>';
+    [...customerSet].sort().forEach((cust) => {
+      const opt = document.createElement("option");
+      opt.value = cust;
+      opt.textContent = cust;
+      filterCustomer.appendChild(opt);
+    });
+    if (currentCustomerValue) filterCustomer.value = currentCustomerValue;
 
     filterProject.innerHTML = '<option value="">Alla projekt</option>';
     projects.forEach((p) => {
@@ -581,6 +641,20 @@
     );
   }
 
+  function getCustomerName(r) {
+    let proj =
+      (r.projectId && projects.find((p) => p.id === r.projectId)) || null;
+    if (!proj && r.projectName) {
+      proj = projects.find((p) => (p.name || "").trim() === (r.projectName || "").trim()) || null;
+    }
+    return (
+      (proj && (proj.customer || proj.customer_name)) ||
+      r.customer ||
+      r.customer_name ||
+      ""
+    );
+  }
+
   function getSubProjectName(r) {
     return (
       r.subProjectName ||
@@ -592,6 +666,7 @@
 
   function getFilteredReports() {
     const userVal = filterUser.value;
+    const customerVal = filterCustomer.value;
     const projVal = filterProject.value;
     const subVal = filterSubproject.value;
     const statusVal = filterStatus.value;
@@ -599,11 +674,30 @@
     return reports.filter((r) => {
       const matchesUser =
         !userVal || (r.userName || "").trim() === userVal;
+      const matchesCustomer =
+        !customerVal || getCustomerName(r) === customerVal;
       const matchesProject = !projVal || r.projectId === projVal;
       const matchesSub = !subVal || r.subProjectId === subVal;
       const matchesStatus = !statusVal || r.status === statusVal;
 
-      return matchesUser && matchesProject && matchesSub && matchesStatus;
+      return (
+        matchesUser &&
+        matchesCustomer &&
+        matchesProject &&
+        matchesSub &&
+        matchesStatus
+      );
+    });
+  }
+
+  function getDeviationsForReport(r) {
+    return deviations.filter((d) => {
+      const sameReport = d.reportId && String(d.reportId) === String(r.id);
+      const sameProject =
+        d.projectId &&
+        r.projectId &&
+        String(d.projectId) === String(r.projectId);
+    return sameReport || sameProject;
     });
   }
 
@@ -623,12 +717,27 @@
 
       const projectName = getProjectName(r);
       const subProjectName = getSubProjectName(r);
+      const devsForReport = getDeviationsForReport(r);
+      const devCount = devsForReport.length;
+      const devListHtml = devsForReport
+        .slice(0, 3)
+        .map(
+          (d) =>
+            `<div style="font-size:11px;">• ${d.title || "Avvikelse"}${
+              d.image ? " 📷" : ""
+            }</div>`
+        )
+        .join("");
 
       tr.innerHTML = `
         <td><input type="date" class="row-input date" value="${r.datum || ""}" disabled /></td>
         <td><input class="row-input name-input" type="text" value="${r.userName || ""}" disabled /></td>
+        <td><input class="row-input customer-input" type="text" value="${getCustomerName(r) || ""}" disabled /></td>
         <td><input class="row-input project-input" type="text" value="${projectName}" disabled /></td>
         <td><input class="row-input subproject-input" type="text" value="${subProjectName || ""}" disabled /></td>
+        <td>
+          ${devCount ? `<span class="status-badge status-ny">${devCount} st</span>${devListHtml}` : "<small>Inga</small>"}
+        </td>
         <td><input type="time" step="600" class="row-input start-input" value="${r.starttid || ""}" disabled /></td>
         <td><input type="time" step="600" class="row-input end-input" value="${r.sluttid || ""}" disabled /></td>
         <td class="total-hours">${totalHours.toFixed(1)}</td>
@@ -648,6 +757,7 @@
           <div class="actions">
             <button class="btn-small edit">Redigera</button>
             <button class="btn-small save" disabled>Spara</button>
+            <button class="btn-small view-comment">Se kommentar</button>
             <button class="btn-small attest">
               ${r.status === "Attesterad" ? "Ta bort attest" : "Attestera"}
             </button>
@@ -658,27 +768,40 @@
 
       const attestBtn = tr.querySelector(".btn-small.attest");
       attestBtn.addEventListener("click", async () => {
-        const action = reports[realIndex].status === "Attesterad" ? "unattest" : "attest";
+        const currentStatus = reports[realIndex].status === "Attesterad" ? "Attesterad" : "Ny";
+        const nextStatus = currentStatus === "Attesterad" ? "Ny" : "Attesterad";
         try {
-          await apiFetch(`/time-reports/${r.id}/attest`, { method: "POST", body: { action } });
-          // ladda om listan från server för korrekt status/metadata
-          await loadReportsFromServer();
+          // Försök API om det finns, men fall back till lokalt
+          await apiFetch(`/time-reports/${r.id}/attest`, { method: "POST", body: { action: nextStatus === "Attesterad" ? "attest" : "unattest" } });
         } catch (e) {
-          console.error(e);
-          alert("Kunde inte ändra atteststatus.");
+          console.warn("API attest misslyckades, uppdaterar lokalt istället:", e);
         }
+        reports[realIndex].status = nextStatus;
+        saveReports();
+        render();
       });
 
       const deleteBtn = tr.querySelector(".btn-small.delete");
+      const viewCommentBtn = tr.querySelector(".btn-small.view-comment");
       deleteBtn.addEventListener("click", async () => {
         if (!confirm("Vill du ta bort den här tidrapporten?")) return;
         try {
           await fetch(`/time-reports/${r.id}`, { method: "DELETE", headers: API_TOKEN ? { Authorization: `Bearer ${API_TOKEN}` } : {} });
-          await loadReportsFromServer();
-          buildFilterOptions();
         } catch (e) {
-          console.error(e);
-          alert("Kunde inte radera tidrapporten.");
+          console.warn("API delete misslyckades, tar bort lokalt:", e);
+        }
+        reports.splice(realIndex, 1);
+        saveReports();
+        buildFilterOptions();
+        render();
+      });
+
+      viewCommentBtn.addEventListener("click", () => {
+        const txt = (reports[realIndex].comment || "").trim();
+        if (!txt) {
+          alert("Ingen kommentar sparad på denna tidrapport.");
+        } else {
+          alert("Kommentar:\n\n" + txt);
         }
       });
 
@@ -751,22 +874,22 @@
             method: "PUT",
             body: payload,
           });
-          reports[realIndex] = {
-            ...reports[realIndex],
-            ...payload,
-            date: dateVal,
-            start: roundedStart,
-            end: roundedEnd,
-            hours: hoursVal,
-            userName: nameVal,
-          };
-          saveReports();
-          buildFilterOptions();
-          render();
         } catch (e) {
-          console.error(e);
-          alert("Kunde inte spara ändringarna.");
+          console.warn("API update misslyckades, sparar lokalt:", e);
         }
+
+        reports[realIndex] = {
+          ...reports[realIndex],
+          ...payload,
+          date: dateVal,
+          start: roundedStart,
+          end: roundedEnd,
+          hours: hoursVal,
+          userName: nameVal,
+        };
+        saveReports();
+        buildFilterOptions();
+        render();
       });
 
       tbody.appendChild(tr);
@@ -776,6 +899,7 @@
   }
 
   filterUser.addEventListener("change", render);
+  filterCustomer.addEventListener("change", render);
   filterProject.addEventListener("change", render);
   filterSubproject.addEventListener("change", render);
   filterStatus.addEventListener("change", render);
@@ -797,6 +921,16 @@
       return;
     }
 
+    const totals = {
+      hours: 0,
+      travel: 0,
+      day: 0,
+      evening: 0,
+      night: 0,
+      weekend: 0,
+    };
+    const materialTotals = {};
+
     let rowsHtml = "";
     list.forEach((r) => {
       const ob = splitObHours(r);
@@ -805,6 +939,21 @@
 
       const projectName = getProjectName(r);
       const subProjectName = getSubProjectName(r);
+      const devs = getDeviationsForReport(r);
+      const devCount = devs.length;
+
+      totals.hours += totalHours;
+      totals.travel += travel;
+      totals.day += ob.dag;
+      totals.evening += ob.kväll;
+      totals.night += ob.natt;
+      totals.weekend += ob.helg;
+
+      (r.materials || []).forEach((m) => {
+        const key = m.typeName || m.type || "Material";
+        const qty = Number(m.quantity || 0) || 0;
+        materialTotals[key] = (materialTotals[key] || 0) + qty;
+      });
 
       rowsHtml += `
         <tr>
@@ -820,7 +969,14 @@
           <td>${ob.natt.toFixed(1)}</td>
           <td>${ob.helg.toFixed(1)}</td>
           <td>${travel.toFixed(1)}</td>
+          <td>${devCount}</td>
         </tr>
+        ${
+          (r.comment || "").trim()
+            ? `<tr><td colspan="13" style="background:#f9fafb;">Kommentar: ${(r.comment || "")
+                .replace(/</g, "&lt;")}</td></tr>`
+            : ""
+        }
       `;
     });
 
@@ -880,17 +1036,96 @@
               <th>Start</th>
               <th>Slut</th>
               <th>Totalt (h)</th>
-              <th>Dag</th>
-              <th>Kväll</th>
-              <th>Natt</th>
-              <th>Helg</th>
-              <th>Restid (h)</th>
+              <th>OB dag</th>
+              <th>OB kväll</th>
+              <th>OB natt</th>
+              <th>OB helg</th>
+              <th>Restid</th>
+              <th>Avvikelser</th>
             </tr>
           </thead>
           <tbody>
             ${rowsHtml}
           </tbody>
         </table>
+
+    <h2>Sammanställning</h2>
+    <table>
+      <tbody>
+        <tr><th>Totalt timmar</th><td>${totals.hours.toFixed(1)} h</td></tr>
+        <tr><th>Restid</th><td>${totals.travel.toFixed(1)} h</td></tr>
+        <tr><th>Dag</th><td>${totals.day.toFixed(1)} h</td></tr>
+        <tr><th>Kväll</th><td>${totals.evening.toFixed(1)} h</td></tr>
+        <tr><th>Natt</th><td>${totals.night.toFixed(1)} h</td></tr>
+        <tr><th>Helg</th><td>${totals.weekend.toFixed(1)} h</td></tr>
+      </tbody>
+    </table>
+
+    ${
+      Object.keys(materialTotals).length
+        ? `<h3>Material</h3>
+           <table>
+             <thead><tr><th>Typ</th><th>Antal</th></tr></thead>
+             <tbody>
+               ${Object.entries(materialTotals)
+                 .map(
+                   ([name, qty]) =>
+                     `<tr><td>${name.replace(/</g, "&lt;")}</td><td>${qty}</td></tr>`
+                 )
+                 .join("")}
+             </tbody>
+           </table>`
+        : ""
+    }
+
+    <h2>Avvikelser kopplade till rapporter</h2>
+    <p>Avvikelser kopplade via tidrapport eller projekt. Bilder bäddas in om de finns.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Rubrik</th>
+          <th>Projekt</th>
+          <th>Tidrapport</th>
+          <th>Allvarlighet</th>
+          <th>Status</th>
+          <th>Bild</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list
+          .map((r) => getDeviationsForReport(r))
+          .flat()
+          .map((d) => {
+            const sev =
+              d.severity === "critical"
+                ? "Kritisk"
+                : d.severity === "high"
+                ? "Hög"
+                : d.severity === "medium"
+                ? "Medel"
+                : "Låg";
+            const stat =
+              d.status === "resolved"
+                ? "Åtgärdad"
+                : d.status === "in_progress"
+                ? "Pågår"
+                : "Öppen";
+            return `
+              <tr>
+                <td>${d.date || "-"}</td>
+                <td>${(d.title || "").replace(/</g, "&lt;")}</td>
+                <td>${(d.projectName || "").replace(/</g, "&lt;")}</td>
+                <td>${(d.reportLabel || "").replace(/</g, "&lt;")}</td>
+                <td>${sev}</td>
+                <td>${stat}</td>
+                <td>${d.image ? "<img src='" + d.image + "' style='width:120px; height:auto; border:1px solid #e5e7eb; border-radius:6px;' />" : "-"}</td>
+              </tr>
+            `;
+          })
+          .join("")}
+      </tbody>
+    </table>
       </body>
       </html>
     `;
