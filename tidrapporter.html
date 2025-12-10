@@ -428,6 +428,17 @@
       projectSelect.disabled = activeProjects.length === 0;
     }
 
+    function roundTimeToStep(timeStr, stepMinutes = 10) {
+      if (!timeStr) return "";
+      const [h, m] = timeStr.split(":").map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) return "";
+      const totalMinutes = h * 60 + m;
+      const rounded = Math.round(totalMinutes / stepMinutes) * stepMinutes;
+      const rHours = Math.floor(rounded / 60) % 24;
+      const rMinutes = rounded % 60;
+      return `${String(rHours).padStart(2, "0")}:${String(rMinutes).padStart(2, "0")}`;
+    }
+
     function computeHours(dateStr, startStr, endStr) {
       if (!dateStr || !startStr || !endStr) return 0;
 
@@ -601,8 +612,12 @@
         projectSelect.options[projectSelect.selectedIndex]?.dataset.name ||
         projectSelect.options[projectSelect.selectedIndex]?.textContent ||
         "";
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
+      const startInput = document.getElementById("start");
+      const endInput = document.getElementById("end");
+      const start = roundTimeToStep(startInput.value, 10);
+      const end = roundTimeToStep(endInput.value, 10);
+      startInput.value = start;
+      endInput.value = end;
       const jobRoleId = jobRoleSelect.value;
       const jobRoleName =
         jobRoleSelect.options[jobRoleSelect.selectedIndex]?.textContent || "";
@@ -658,6 +673,13 @@
     loadJobRoles();
     loadMaterialTypes();
     loadProjects();
+    ["start", "end"].forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener("change", () => {
+        const rounded = roundTimeToStep(el.value, 10);
+        if (rounded) el.value = rounded;
+      });
+    });
     renderMaterialsTable();
     renderReportsList();
   </script>
