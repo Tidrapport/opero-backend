@@ -259,8 +259,8 @@
               </select>
             </div>
             <div class="field">
-              <label for="hours">Totala timmar (valfritt)</label>
-              <input id="hours" type="number" step="0.25" min="0" placeholder="Räknas ev. automatiskt internt" />
+              <label for="hours">Totala timmar</label>
+              <input id="hours" type="number" step="0.25" min="0" required />
             </div>
           </div>
 
@@ -518,6 +518,12 @@
         return;
       }
 
+      const hoursVal = Number(hoursRaw);
+      if (Number.isNaN(hoursVal) || hoursVal < 0) {
+        alert("Ange ett giltigt antal timmar (>= 0).");
+        return;
+      }
+
       const reports = loadReportsFromStorage();
       const report = {
         id: Date.now(),
@@ -528,7 +534,7 @@
         end,
         jobRoleId,
         jobRoleName,
-        hours: hoursRaw ? Number(hoursRaw) : null,
+        hours: hoursVal,
         comment,
         materials: currentMaterials
       };
