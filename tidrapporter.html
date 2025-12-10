@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Rail Work AB – Tidrapporter</title>
+  <title>Tidrapporter</title>
   <style>
     * {
       box-sizing: border-box;
@@ -26,7 +26,10 @@
       gap: 8px;
     }
 
-    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+    .sidebar h2 {
+      font-size: 18px;
+      margin: 0 0 16px;
+    }
 
     .nav-section-title {
       font-size: 11px;
@@ -68,15 +71,64 @@
     .topbar small { color: #6b7280; }
     .welcome { font-size: 14px; color: #374151; }
 
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    .page-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.4fr);
+      gap: 20px;
+      align-items: flex-start;
     }
 
-    .page-header h2 { margin: 0; font-size: 20px; }
-    .page-header p { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .field-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+      margin-top: 8px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .field label {
+      color: #374151;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb25;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
 
     .btn-primary {
       padding: 8px 16px;
@@ -88,13 +140,32 @@
       font-size: 14px;
       cursor: pointer;
     }
+
     .btn-primary:hover { background: #1e40af; }
 
-    .card {
+    .btn-secondary {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
       background: #fff;
-      border-radius: 12px;
-      padding: 16px 18px;
-      box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover { background: #f3f4f6; }
+
+    .btn-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-small.delete {
+      border-color: #f87171;
+      color: #b91c1c;
     }
 
     table {
@@ -104,14 +175,14 @@
     }
 
     th, td {
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
       vertical-align: top;
     }
 
     th {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       color: #6b7280;
     }
@@ -120,129 +191,6 @@
       font-size: 13px;
       color: #6b7280;
       margin-top: 8px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .btn-small {
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .btn-small.edit {
-      border-color: #3b82f6;
-      color: #1d4ed8;
-    }
-
-    .btn-small.delete {
-      border-color: #f87171;
-      color: #b91c1c;
-    }
-
-    .lock-label {
-      font-size: 12px;
-      color: #16a34a;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* MODAL */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
-
-    .modal {
-      width: 100%;
-      max-width: 780px;
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 24px 24px 20px;
-      box-shadow: 0 24px 50px rgba(15,23,42,0.35);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-header h3 { margin: 0; font-size: 18px; }
-
-    .modal-close {
-      border: none;
-      background: transparent;
-      font-size: 20px;
-      cursor: pointer;
-      color: #6b7280;
-    }
-
-    .modal-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px 16px;
-      margin-bottom: 12px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 13px;
-    }
-
-    .field label { color: #374151; }
-
-    .field input,
-    .field select,
-    .field textarea {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      resize: vertical;
-    }
-
-    .field textarea { min-height: 70px; }
-
-    .field input:focus,
-    .field select:focus,
-    .field textarea:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px #2563eb25;
-    }
-
-    .modal-footer {
-      margin-top: 16px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .btn-secondary {
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      cursor: pointer;
-      font-size: 14px;
     }
   </style>
 </head>
@@ -260,13 +208,13 @@
       <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
 
-    <div class="nav-section-title admin-only">Administration</div>
-    <a href="admin.html" class="nav-item admin-only">Attestering</a>
-    <a href="projects.html" class="nav-item admin-only">Projekt</a>
-    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+    <div class="nav-section-title">Administration</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
+    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
   </aside>
@@ -275,117 +223,123 @@
   <main class="main">
     <div class="topbar">
       <div>
-        <h1>Rail Work AB</h1>
-        <small>Tidrapporter – registrera och hantera dina arbetstimmar</small>
+        <h1>Tidrapport</h1>
+        <small>Registrera arbetad tid och materialförbrukning</small>
       </div>
       <div class="welcome" id="welcomeText">Välkommen</div>
     </div>
 
-    <div class="page-header">
-      <div>
-        <h2>Tidrapporter</h2>
-        <p>Här registrerar du dina arbetspass. Välj projekt och underprojekt som lagts upp av admin.</p>
-      </div>
-      <button class="btn-primary" id="newReportBtn">+ Ny tidrapport</button>
-    </div>
+    <div class="page-layout">
+      <!-- TIDRAPPORT-FORM -->
+      <section class="card">
+        <h2>Ny tidrapport</h2>
+        <form id="timeForm">
+          <div class="field-group">
+            <div class="field">
+              <label for="date">Datum</label>
+              <input id="date" type="date" required />
+            </div>
+            <div class="field">
+              <label for="project">Projekt</label>
+              <input id="project" type="text" required placeholder="Projekt / arbetsorder" />
+            </div>
+            <div class="field">
+              <label for="start">Starttid</label>
+              <input id="start" type="time" required />
+            </div>
+            <div class="field">
+              <label for="end">Sluttid</label>
+              <input id="end" type="time" required />
+            </div>
+            <div class="field">
+              <label for="jobRole">Yrkesroll</label>
+              <!-- ✅ DROPDOWN, INTE INPUT -->
+              <select id="jobRole" required>
+                <option value="">Välj yrkesroll</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="hours">Totala timmar (valfritt)</label>
+              <input id="hours" type="number" step="0.25" min="0" placeholder="Räknas ev. automatiskt internt" />
+            </div>
+          </div>
 
-    <div class="card">
-      <table>
-        <thead>
-          <tr>
-            <th>Datum</th>
-            <th>Projekt</th>
-            <th>Underprojekt</th>
-            <th>Start</th>
-            <th>Slut</th>
-            <th>Roll</th>
-            <th>Beskrivning</th>
-            <th>Rast (min)</th>
-            <th>Restid (h)</th>
-            <th>Timmar</th>
-            <th>Åtgärder</th>
-          </tr>
-        </thead>
-        <tbody id="reportsBody"></tbody>
-      </table>
-      <div id="emptyState" class="badge-empty">
-        Inga tidrapporter ännu. Klicka på <strong>“Ny tidrapport”</strong> för att lägga till den första.
-      </div>
+          <div class="field" style="margin-top:12px;">
+            <label for="comment">Kommentar (valfritt)</label>
+            <textarea id="comment" placeholder="Kort beskrivning av arbetet..."></textarea>
+          </div>
+
+          <!-- MATERIALFÖRBRUKNING -->
+          <div style="margin-top:16px;">
+            <h3 style="margin:0 0 6px; font-size:16px;">Materialförbrukning</h3>
+            <p style="font-size:12px; color:#6b7280; margin:0 0 6px;">
+              Välj materialtyp (förbrukningsmaterial) som admin har lagt in. Användare kan inte skapa egna materialtyper.
+            </p>
+
+            <div class="field-group">
+              <div class="field">
+                <label for="materialTypeSelect">Materialtyp</label>
+                <select id="materialTypeSelect">
+                  <option value="">Välj materialtyp</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="materialQty">Antal</label>
+                <input id="materialQty" type="number" step="0.01" min="0" />
+              </div>
+              <div class="field">
+                <label for="materialPlace">Var användes materialet?</label>
+                <input id="materialPlace" type="text" placeholder="Ex. Spår 3, sektion A" />
+              </div>
+              <div class="field" style="align-self:flex-end;">
+                <button type="button" id="addMaterialBtn" class="btn-secondary">
+                  Lägg till material
+                </button>
+              </div>
+            </div>
+
+            <table style="margin-top:10px;">
+              <thead>
+                <tr>
+                  <th>Materialtyp</th>
+                  <th>Antal</th>
+                  <th>Plats</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="materialsTableBody"></tbody>
+            </table>
+            <div id="noReportMaterials" class="badge-empty">
+              Inga materialrader tillagda.
+            </div>
+          </div>
+
+          <div style="margin-top:16px; display:flex; justify-content:flex-end; gap:8px;">
+            <button type="submit" class="btn-primary">Spara tidrapport</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ENKEL LISTA ÖVER SPARADE RAPPORTER (LOCALSTORAGE) -->
+      <section class="card">
+        <h2>Sparade rapporter (lokalt)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Projekt</th>
+              <th>Yrkesroll</th>
+              <th>Materialrader</th>
+            </tr>
+          </thead>
+          <tbody id="reportsBody"></tbody>
+        </table>
+        <div id="noReports" class="badge-empty">
+          Inga rapporter sparade lokalt på denna enhet ännu.
+        </div>
+      </section>
     </div>
   </main>
-
-  <!-- MODAL -->
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Ny tidrapport</h3>
-        <button class="modal-close" id="closeModalBtn">&times;</button>
-      </div>
-
-      <form id="reportForm">
-        <div class="modal-grid">
-          <div class="field">
-            <label for="datum">Datum</label>
-            <input type="date" id="datum" required />
-          </div>
-
-          <div class="field">
-            <label for="rast">Rast (minuter)</label>
-            <input type="number" id="rast" min="0" step="5" value="0" />
-          </div>
-
-          <div class="field">
-            <label for="starttid">Starttid</label>
-            <input type="time" id="starttid" required />
-          </div>
-
-          <div class="field">
-            <label for="sluttid">Sluttid</label>
-            <input type="time" id="sluttid" required />
-          </div>
-
-          <div class="field">
-            <label for="projektSelect">Projekt</label>
-            <select id="projektSelect"></select>
-          </div>
-
-          <div class="field">
-            <label for="subprojektSelect">Underprojekt</label>
-            <select id="subprojektSelect"></select>
-          </div>
-
-          <div class="field">
-            <label for="roll">Yrkesroll</label>
-            <input type="text" id="roll" placeholder="Roll..." />
-          </div>
-
-          <div class="field" style="grid-column: 1 / span 2;">
-            <label for="beskrivning">Arbetsbeskrivning</label>
-            <textarea id="beskrivning" placeholder="Beskriv vad som utfördes..." required></textarea>
-          </div>
-
-          <div class="field">
-            <label for="traktamente">Traktamente</label>
-            <select id="traktamente">
-              <option>Ingen</option>
-              <option>Halv dag</option>
-              <option>Hel dag</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="restid">Reseersättning (timmar)</label>
-            <input type="number" id="restid" min="0" step="0.5" value="0" />
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" id="cancelBtn">Avbryt</button>
-          <button type="submit" class="btn-primary" id="saveReportBtn">Spara tidrapport</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <script src="auth.js"></script>
   <script>
@@ -393,282 +347,208 @@
     setupSidebarForUser(currentUser);
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("currentUser");
+      localStorage.clear();
       window.location.href = "login.html";
     });
 
-    const STORAGE_KEY = "timeReports";
-    const PROJECTS_KEY = "projects";
-    const SUBPROJECTS_KEY = "subProjects";
-
-    const modalBackdrop = document.getElementById("modalBackdrop");
-    const newReportBtn = document.getElementById("newReportBtn");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
-    const reportForm = document.getElementById("reportForm");
+    const jobRoleSelect = document.getElementById("jobRole");
+    const materialTypeSelect = document.getElementById("materialTypeSelect");
+    const addMaterialBtn = document.getElementById("addMaterialBtn");
+    const materialsTableBody = document.getElementById("materialsTableBody");
+    const noReportMaterials = document.getElementById("noReportMaterials");
     const reportsBody = document.getElementById("reportsBody");
-    const emptyState = document.getElementById("emptyState");
-    const modalTitle = document.getElementById("modalTitle");
+    const noReports = document.getElementById("noReports");
+    const timeForm = document.getElementById("timeForm");
 
-    const projektSelect = document.getElementById("projektSelect");
-    const subprojektSelect = document.getElementById("subprojektSelect");
+    let currentMaterials = [];
 
-    let reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    let projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-    let subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+    // ===== HÄMTA YRKESROLLER (dropdown, ingen fri text) =====
+    async function loadJobRoles() {
+      try {
+        const res = await fetch("/job-roles");
+        const roles = await res.json();
 
-    let editingIndex = null;
-
-    reports.forEach(r => {
-      if (!r.status) r.status = "Ny";
-      if (r.restid === undefined) r.restid = 0;
-      if (r.rast === undefined) r.rast = 0;
-    });
-    saveReports();
-
-    function saveReports() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-    }
-
-    function toggleEmptyState() {
-      emptyState.style.display = reports.length ? "none" : "block";
-    }
-
-    function calcBaseHours(start, end) {
-      if (!start || !end) return 0;
-      const [sh, sm] = start.split(":").map(Number);
-      const [eh, em] = end.split(":").map(Number);
-      let startMin = sh * 60 + sm;
-      let endMin = eh * 60 + em;
-      if (endMin <= startMin) endMin += 24 * 60;
-      return (endMin - startMin) / 60;
-    }
-
-    function openModal(isEdit = false) {
-      reloadProjectDropdowns();
-      modalBackdrop.style.display = "flex";
-      if (!isEdit) {
-        modalTitle.textContent = "Ny tidrapport";
-        const today = new Date().toISOString().slice(0, 10);
-        document.getElementById("datum").value = today;
-        document.getElementById("rast").value = "0";
-        document.getElementById("restid").value = "0";
-        document.getElementById("traktamente").value = "Ingen";
-      } else {
-        modalTitle.textContent = "Redigera tidrapport";
-      }
-    }
-
-    function closeModal() {
-      modalBackdrop.style.display = "none";
-      reportForm.reset();
-      editingIndex = null;
-      modalTitle.textContent = "Ny tidrapport";
-    }
-
-    closeModalBtn.addEventListener("click", closeModal);
-    cancelBtn.addEventListener("click", closeModal);
-    modalBackdrop.addEventListener("click", (e) => {
-      if (e.target === modalBackdrop) closeModal();
-    });
-
-    newReportBtn.addEventListener("click", () => openModal(false));
-
-    function reloadProjectDropdowns(selectedProjectId = "", selectedSubId = "") {
-      projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-      subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
-
-      projektSelect.innerHTML = "";
-      const defaultOpt = document.createElement("option");
-      defaultOpt.value = "";
-      defaultOpt.textContent = "Välj projekt";
-      projektSelect.appendChild(defaultOpt);
-
-      projects
-        .filter(p => p.status === "aktiv")
-        .forEach((p) => {
+        jobRoleSelect.innerHTML = '<option value="">Välj yrkesroll</option>';
+        roles.forEach(role => {
           const opt = document.createElement("option");
-          opt.value = p.id;
-          opt.textContent = p.name;
-          projektSelect.appendChild(opt);
+          opt.value = role.id;
+          opt.textContent = role.name;
+          jobRoleSelect.appendChild(opt);
         });
-
-      if (selectedProjectId) {
-        projektSelect.value = selectedProjectId;
+      } catch (err) {
+        console.error(err);
+        alert("Kunde inte hämta yrkesroller.");
       }
-
-      reloadSubDropdown(selectedProjectId || projektSelect.value, selectedSubId);
     }
 
-    function reloadSubDropdown(projectId, selectedSubId = "") {
-      subprojektSelect.innerHTML = "";
-      const defaultOpt = document.createElement("option");
-      defaultOpt.value = "";
-      defaultOpt.textContent = "Inget underprojekt";
-      subprojektSelect.appendChild(defaultOpt);
+    // ===== HÄMTA MATERIALTYPER =====
+    async function loadMaterialTypes() {
+      try {
+        const res = await fetch("/material-types");
+        const materials = await res.json();
 
-      if (!projectId) return;
-
-      subProjects
-        .filter(sp => sp.projectId === projectId)
-        .forEach((sp) => {
+        materialTypeSelect.innerHTML = '<option value="">Välj materialtyp</option>';
+        materials.forEach(mat => {
           const opt = document.createElement("option");
-          opt.value = sp.id;
-          opt.textContent = sp.name;
-          subprojektSelect.appendChild(opt);
+          opt.value = mat.id;
+          opt.textContent = mat.unit
+            ? `${mat.name} (${mat.unit})`
+            : mat.name;
+          materialTypeSelect.appendChild(opt);
         });
-
-      if (selectedSubId) {
-        subprojektSelect.value = selectedSubId;
+      } catch (err) {
+        console.error(err);
+        alert("Kunde inte hämta materialtyper.");
       }
     }
 
-    projektSelect.addEventListener("change", () => {
-      reloadSubDropdown(projektSelect.value);
-    });
+    function renderMaterialsTable() {
+      materialsTableBody.innerHTML = "";
 
-    function render() {
-      reportsBody.innerHTML = "";
+      if (!currentMaterials.length) {
+        noReportMaterials.style.display = "block";
+        return;
+      }
+      noReportMaterials.style.display = "none";
 
-      reports.forEach((r, index) => {
+      currentMaterials.forEach((row, index) => {
         const tr = document.createElement("tr");
-        const timmar = parseFloat(r.timmar || "0") || 0;
-        const rast = Number(r.rast || 0);
-        const restid = Number(r.restid || 0);
-
-        const projectName = r.projectName || r.projekt || "-";
-        const subName = r.subProjectName || "";
-
         tr.innerHTML = `
-          <td>${r.datum || "-"}</td>
-          <td>${projectName}</td>
-          <td>${subName || "-"}</td>
-          <td>${r.starttid || "-"}</td>
-          <td>${r.sluttid || "-"}</td>
-          <td>${r.roll || "-"}</td>
-          <td>${r.beskrivning || ""}</td>
-          <td>${rast}</td>
-          <td>${restid.toFixed(1)}</td>
-          <td>${timmar.toFixed(1)}</td>
+          <td>${row.typeName}</td>
+          <td>${row.quantity}</td>
+          <td>${row.place || "-"}</td>
           <td>
-            <div class="actions">
-              ${
-                r.status === "Attesterad"
-                  ? `<span class="lock-label">🔒 Låst (attesterad)</span>`
-                  : `
-                    <button type="button" class="btn-small edit">Redigera</button>
-                    <button type="button" class="btn-small delete">Ta bort</button>
-                  `
-              }
-            </div>
+            <button type="button" class="btn-small delete" data-index="${index}">
+              Ta bort
+            </button>
           </td>
         `;
-
-        if (r.status !== "Attesterad") {
-          const editBtn = tr.querySelector(".btn-small.edit");
-          const deleteBtn = tr.querySelector(".btn-small.delete");
-
-          editBtn.addEventListener("click", () => {
-            editingIndex = index;
-
-            document.getElementById("datum").value = r.datum || "";
-            document.getElementById("rast").value = r.rast || 0;
-            document.getElementById("starttid").value = r.starttid || "";
-            document.getElementById("sluttid").value = r.sluttid || "";
-            document.getElementById("roll").value = r.roll || "";
-            document.getElementById("beskrivning").value = r.beskrivning || "";
-            document.getElementById("traktamente").value = r.traktamente || "Ingen";
-            document.getElementById("restid").value = r.restid || 0;
-
-            const projId = r.projectId || "";
-            const subId = r.subProjectId || "";
-
-            openModal(true);
-            reloadProjectDropdowns(projId, subId);
-          });
-
-          deleteBtn.addEventListener("click", () => {
-            if (!confirm("Vill du ta bort den här tidrapporten?")) return;
-            reports.splice(index, 1);
-            saveReports();
-            render();
-          });
-        }
-
-        reportsBody.appendChild(tr);
+        materialsTableBody.appendChild(tr);
       });
 
-      toggleEmptyState();
+      materialsTableBody.querySelectorAll(".btn-small.delete").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.getAttribute("data-index"), 10);
+          currentMaterials.splice(idx, 1);
+          renderMaterialsTable();
+        });
+      });
     }
 
-    render();
+    addMaterialBtn.addEventListener("click", () => {
+      const typeId = materialTypeSelect.value;
+      const typeName = materialTypeSelect.options[materialTypeSelect.selectedIndex]?.textContent || "";
+      const qty = document.getElementById("materialQty").value;
+      const place = document.getElementById("materialPlace").value.trim();
 
-    reportForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const datum = document.getElementById("datum").value;
-      const rastMin = Number(document.getElementById("rast").value || 0);
-      const starttid = document.getElementById("starttid").value;
-      const sluttid = document.getElementById("sluttid").value;
-      const roll = document.getElementById("roll").value;
-      const beskrivning = document.getElementById("beskrivning").value;
-      const traktamente = document.getElementById("traktamente").value;
-      const restid = Number(document.getElementById("restid").value || 0);
-
-      const projectId = projektSelect.value || "";
-      const subProjectId = subprojektSelect.value || "";
-
-      const projectObj = projects.find(p => p.id === projectId);
-      const subObj = subProjects.find(sp => sp.id === subProjectId);
-
-      const projectName = projectObj ? projectObj.name : "";
-      const subProjectName = subObj ? subObj.name : "";
-
-      if (!datum || !starttid || !sluttid) {
-        alert("Fyll i datum, starttid och sluttid.");
+      if (!typeId) {
+        alert("Välj materialtyp.");
+        return;
+      }
+      if (!qty || Number(qty) <= 0) {
+        alert("Ange antal > 0.");
         return;
       }
 
-      const baseHours = calcBaseHours(starttid, sluttid);
-      let hours = baseHours - rastMin / 60 + restid;
-      if (hours < 0) hours = 0;
+      currentMaterials.push({
+        typeId,
+        typeName,
+        quantity: Number(qty),
+        place
+      });
 
-      const baseReport = {
-        datum,
-        rast: rastMin,
-        starttid,
-        sluttid,
-        roll: roll || "-",
-        beskrivning,
-        traktamente,
-        restid,
-        timmar: hours.toFixed(1),
-        projectId,
-        projectName: projectName || "-",
-        subProjectId,
-        subProjectName: subProjectName || "",
-        projekt: projectName || "-"
-      };
+      // Nollställ fält
+      document.getElementById("materialQty").value = "";
+      document.getElementById("materialPlace").value = "";
 
-      if (editingIndex !== null) {
-        const old = reports[editingIndex];
-        reports[editingIndex] = {
-          ...old,
-          ...baseReport,
-          status: old.status || "Ny",
-        };
-      } else {
-        reports.push({
-          ...baseReport,
-          status: "Ny",
-        });
+      renderMaterialsTable();
+    });
+
+    // ===== SPARA TIDRAPPORT (lokalt, inkl. materialförbrukning) =====
+    function loadReportsFromStorage() {
+      try {
+        const raw = localStorage.getItem("timeReports") || "[]";
+        return JSON.parse(raw);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveReportsToStorage(list) {
+      localStorage.setItem("timeReports", JSON.stringify(list));
+    }
+
+    function renderReportsList() {
+      const reports = loadReportsFromStorage();
+      reportsBody.innerHTML = "";
+
+      if (!reports.length) {
+        noReports.style.display = "block";
+        return;
+      }
+      noReports.style.display = "none";
+
+      reports.forEach(rep => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${rep.date || "-"}</td>
+          <td>${rep.project || "-"}</td>
+          <td>${rep.jobRoleName || "-"}</td>
+          <td>${(rep.materials || []).length}</td>
+        `;
+        reportsBody.appendChild(tr);
+      });
+    }
+
+    timeForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const date = document.getElementById("date").value;
+      const project = document.getElementById("project").value.trim();
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+      const jobRoleId = jobRoleSelect.value;
+      const jobRoleName =
+        jobRoleSelect.options[jobRoleSelect.selectedIndex]?.textContent || "";
+      const hoursRaw = document.getElementById("hours").value;
+      const comment = document.getElementById("comment").value.trim();
+
+      if (!date || !project || !start || !end || !jobRoleId) {
+        alert("Fyll i datum, projekt, tider och yrkesroll.");
+        return;
       }
 
-      saveReports();
-      render();
-      closeModal();
+      const reports = loadReportsFromStorage();
+      const report = {
+        id: Date.now(),
+        userId: currentUser?.id || null,
+        date,
+        project,
+        start,
+        end,
+        jobRoleId,
+        jobRoleName,
+        hours: hoursRaw ? Number(hoursRaw) : null,
+        comment,
+        materials: currentMaterials
+      };
+
+      reports.push(report);
+      saveReportsToStorage(reports);
+
+      alert("Tidrapport sparad lokalt inklusive materialförbrukning.");
+
+      timeForm.reset();
+      currentMaterials = [];
+      renderMaterialsTable();
+      renderReportsList();
     });
+
+    // Init
+    loadJobRoles();
+    loadMaterialTypes();
+    renderMaterialsTable();
+    renderReportsList();
   </script>
 </body>
 </html>

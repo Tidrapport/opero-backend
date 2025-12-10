@@ -2,10 +2,12 @@
 <html lang="sv">
 <head>
   <meta charset="UTF-8" />
-  <title>Materialtyper – Rail Work</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Materialtyper</title>
   <style>
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
     body {
       margin: 0;
@@ -24,7 +26,10 @@
       gap: 8px;
     }
 
-    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+    .sidebar h2 {
+      font-size: 18px;
+      margin: 0 0 16px;
+    }
 
     .nav-section-title {
       font-size: 11px;
@@ -66,20 +71,11 @@
     .topbar small { color: #6b7280; }
     .welcome { font-size: 14px; color: #374151; }
 
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .page-header h2 { margin: 0; font-size: 20px; }
-    .page-header p { margin: 4px 0 0; font-size: 13px; color: #6b7280; }
-
-    .layout-grid {
+    .page-layout {
       display: grid;
-      grid-template-columns: 2fr 3fr;
-      gap: 16px;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 20px;
+      align-items: flex-start;
     }
 
     .card {
@@ -89,63 +85,15 @@
       box-shadow: 0 8px 20px rgba(15,23,42,0.08);
     }
 
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 8px;
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
     }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .field label { color: #374151; }
-
-    .field input,
-    .field textarea,
-    .field select {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      resize: vertical;
-    }
-
-    .field textarea { min-height: 60px; }
-
-    .btn-primary,
-    .btn-secondary {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: none;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: #1d4ed8;
-      color: #fff;
-    }
-
-    .btn-primary:hover { background: #1e40af; }
-
-    .btn-secondary {
-      background: #fff;
-      border: 1px solid #d1d5db;
-      color: #111827;
-    }
-
-    .btn-secondary:hover { background: #f3f4f6; }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
-      margin-top: 8px;
     }
 
     th, td {
@@ -156,34 +104,60 @@
     }
 
     th {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       color: #6b7280;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
+    .badge-empty {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
     }
 
-    .badge-active {
-      background: #dcfce7;
-      color: #166534;
+    .field-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+      margin-top: 8px;
     }
 
-    .badge-inactive {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .table-actions {
+    .field {
       display: flex;
+      flex-direction: column;
       gap: 4px;
-      flex-wrap: wrap;
+      font-size: 13px;
     }
+
+    .field label {
+      color: #374151;
+    }
+
+    .field input {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #2563eb25;
+    }
+
+    .btn-primary {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover { background: #1e40af; }
 
     .btn-small {
       padding: 3px 8px;
@@ -194,254 +168,198 @@
       cursor: pointer;
     }
 
-    .btn-small.edit {
-      border-color: #3b82f6;
-      color: #1d4ed8;
-    }
-
     .btn-small.delete {
       border-color: #f87171;
       color: #b91c1c;
     }
-
-    @media (max-width: 1000px) {
-      .layout-grid {
-        grid-template-columns: 1fr;
-      }
-      .main { padding: 16px; }
-    }
   </style>
 </head>
 <body>
-<!-- SIDEBAR -->
-<aside class="sidebar">
-  <h2>Admina Bas</h2>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>Admina Bas</h2>
 
-  <div class="nav-section">
-    <a href="dashboard.html" class="nav-item">Översikt</a>
-    <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
-    <a href="planning.html" class="nav-item">Planering</a>
-    <a href="deviations.html" class="nav-item">Avvikelser</a>
-    <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
-    <a href="contacts.html" class="nav-item">Kontakter</a>
-  </div>
-
-  <div class="nav-section-title admin-only">Administration</div>
-  <a href="admin.html" class="nav-item admin-only">Attestering</a>
-  <a href="projects.html" class="nav-item admin-only">Projekt</a>
-  <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
-  <a href="material_types.html" class="nav-item admin-only active">Materialtyper</a>
-  <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
-
-  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-  <div class="topbar">
-    <div>
-      <h1>Rail Work AB</h1>
-      <small>Materialtyper – används i materialrapportering</small>
-    </div>
-    <div class="welcome" id="welcomeText">Välkommen</div>
-  </div>
-
-  <div class="page-header">
-    <div>
-      <h2>Materialtyper</h2>
-      <p>Lägg upp material som slipers, ballast, kabel m.m. med enhet.</p>
-    </div>
-  </div>
-
-  <div class="layout-grid">
-    <div class="card">
-      <div class="card-title" id="formTitle">Ny materialtyp</div>
-      <form id="matForm">
-        <input type="hidden" id="editMatId" />
-
-        <div class="field">
-          <label for="matName">Namn</label>
-          <input id="matName" placeholder="Ex: Slipers" required />
-        </div>
-
-        <div class="field">
-          <label for="matUnit">Enhet</label>
-          <input id="matUnit" placeholder="Ex: st, m, ton" required />
-        </div>
-
-        <div class="field">
-          <label for="matDescription">Beskrivning</label>
-          <textarea id="matDescription" placeholder="Valfri beskrivning"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="matStatus">Status</label>
-          <select id="matStatus">
-            <option value="aktiv">Aktiv</option>
-            <option value="inaktiv">Inaktiv</option>
-          </select>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <button type="submit" class="btn-primary">Spara materialtyp</button>
-          <button type="button" class="btn-secondary" id="resetBtn">Rensa</button>
-        </div>
-      </form>
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="planning.html" class="nav-item">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+      <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
 
-    <div class="card">
-      <div class="card-title">Alla materialtyper</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Namn</th>
-            <th>Enhet</th>
-            <th>Beskrivning</th>
-            <th>Status</th>
-            <th>Åtgärder</th>
-          </tr>
-        </thead>
-        <tbody id="matTableBody"></tbody>
-      </table>
+    <div class="nav-section-title">Administration</div>
+    <a href="admin.html" class="nav-item">Attestering</a>
+    <a href="projects.html" class="nav-item">Projekt</a>
+    <a href="job_roles.html" class="nav-item">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item active">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item">Användare</a>
+
+    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Rail Work AB</h1>
+        <small>Materialtyper – förbrukningsmaterial som kan väljas i tidrapport</small>
+      </div>
+      <div class="welcome" id="welcomeText">Välkommen</div>
     </div>
-  </div>
-</main>
 
-<script src="auth.js"></script>
-<script>
-  (function syncUser() {
-    const raw = localStorage.getItem("user");
-    if (raw && !localStorage.getItem("currentUser")) {
-      try {
-        const u = JSON.parse(raw);
-        const mapped = {
-          ...u,
-          firstName: u.firstName || u.first_name || "",
-          lastName: u.lastName || u.last_name || ""
-        };
-        setCurrentUser(mapped);
-      } catch (e) {}
-    }
-  })();
+    <div class="page-layout">
+      <!-- Lista materialtyper -->
+      <section class="card">
+        <h2>Befintliga materialtyper</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Namn</th>
+              <th>Enhet</th>
+              <th>Åtgärder</th>
+            </tr>
+          </thead>
+          <tbody id="materialsBody"></tbody>
+        </table>
+        <div id="noMaterials" class="badge-empty" style="display:none;">
+          Inga materialtyper ännu. Lägg till en ny i formuläret till höger.
+        </div>
+      </section>
 
-  const currentUser = requireLogin();
-  setupSidebarForUser(currentUser);
-
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("user");
-    window.location.href = "login.html";
-  });
-
-  if (!isAdmin(currentUser)) {
-    alert("Endast admin har åtkomst till denna sida.");
-    window.location.href = "dashboard.html";
-  }
-
-  const MAT_KEY = "materialTypes";
-  let materials = JSON.parse(localStorage.getItem(MAT_KEY) || "[]");
-
-  const matForm = document.getElementById("matForm");
-  const resetBtn = document.getElementById("resetBtn");
-  const matTableBody = document.getElementById("matTableBody");
-  const formTitle = document.getElementById("formTitle");
-
-  function saveMaterials() {
-    localStorage.setItem(MAT_KEY, JSON.stringify(materials));
-  }
-
-  function uuid() {
-    return "mat_" + Math.random().toString(36).slice(2);
-  }
-
-  function renderTable() {
-    matTableBody.innerHTML = "";
-    materials.forEach((m) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${m.name}</td>
-        <td>${m.unit}</td>
-        <td>${m.description || "-"}</td>
-        <td>
-          <span class="badge ${m.status === "aktiv" ? "badge-active" : "badge-inactive"}">
-            ${m.status === "aktiv" ? "Aktiv" : "Inaktiv"}
-          </span>
-        </td>
-        <td>
-          <div class="table-actions">
-            <button class="btn-small edit">Redigera</button>
-            <button class="btn-small delete">Ta bort</button>
+      <!-- Ny materialtyp -->
+      <section class="card">
+        <h2>Lägg till ny materialtyp</h2>
+        <form id="materialForm">
+          <div class="field-group">
+            <div class="field">
+              <label for="materialName">Namn</label>
+              <input id="materialName" type="text" required placeholder="Ex. Spik, Kabel, Slipmaterial" />
+            </div>
+            <div class="field">
+              <label for="materialUnit">Enhet (valfritt)</label>
+              <input id="materialUnit" type="text" placeholder="Ex. st, m, kg" />
+            </div>
           </div>
-        </td>
-      `;
 
-      const editBtn = tr.querySelector(".btn-small.edit");
-      const deleteBtn = tr.querySelector(".btn-small.delete");
+          <p style="font-size:12px; color:#6b7280; margin-top:8px;">
+            Dessa materialtyper visas i en rullista i tidrapporteringen. Användare kan <b>inte</b> lägga till egna typer,
+            utan endast välja härifrån. Endast admin kan lägga till / ta bort.
+          </p>
 
-      editBtn.addEventListener("click", () => {
-        document.getElementById("editMatId").value = m.id;
-        document.getElementById("matName").value = m.name;
-        document.getElementById("matUnit").value = m.unit;
-        document.getElementById("matDescription").value = m.description || "";
-        document.getElementById("matStatus").value = m.status || "aktiv";
-        formTitle.textContent = "Redigera materialtyp";
-      });
+          <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+            <button type="submit" class="btn-primary">Spara materialtyp</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
 
-      deleteBtn.addEventListener("click", () => {
-        if (!confirm("Ta bort materialtypen?")) return;
-        materials = materials.filter((mm) => mm.id !== m.id);
-        saveMaterials();
-        renderTable();
-      });
+  <script src="auth.js"></script>
+  <script>
+    const currentUser = requireLogin();
+    if (!isAdmin(currentUser)) {
+      alert("Endast admin har åtkomst till denna sida.");
+      window.location.href = "dashboard.html";
+    }
+    setupSidebarForUser(currentUser);
 
-      matTableBody.appendChild(tr);
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
     });
-  }
 
-  matForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const id = document.getElementById("editMatId").value;
-    const name = document.getElementById("matName").value.trim();
-    const unit = document.getElementById("matUnit").value.trim();
-    const desc = document.getElementById("matDescription").value.trim();
-    const status = document.getElementById("matStatus").value;
+    const materialsBody = document.getElementById("materialsBody");
+    const noMaterials = document.getElementById("noMaterials");
+    const materialForm = document.getElementById("materialForm");
+    const materialNameInput = document.getElementById("materialName");
+    const materialUnitInput = document.getElementById("materialUnit");
 
-    if (!name || !unit) {
-      alert("Namn och enhet krävs.");
-      return;
-    }
+    async function loadMaterials() {
+      materialsBody.innerHTML = "";
+      try {
+        const res = await fetch("/material-types");
+        const materials = await res.json();
 
-    if (id) {
-      const idx = materials.findIndex((m) => m.id === id);
-      if (idx !== -1) {
-        materials[idx] = { ...materials[idx], name, unit, description: desc, status };
+        if (!materials.length) {
+          noMaterials.style.display = "block";
+          return;
+        } else {
+          noMaterials.style.display = "none";
+        }
+
+        materials.forEach(mat => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${mat.name}</td>
+            <td>${mat.unit || "-"}</td>
+            <td>
+              <button type="button" class="btn-small delete" data-id="${mat.id}">
+                Ta bort
+              </button>
+            </td>
+          `;
+          materialsBody.appendChild(tr);
+        });
+
+        materialsBody.querySelectorAll(".btn-small.delete").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (!confirm("Ta bort materialtypen?")) return;
+            try {
+              const res = await fetch("/material-types/" + id, { method: "DELETE" });
+              const data = await res.json().catch(() => ({}));
+              if (!res.ok) {
+                alert(data.error || "Kunde inte ta bort materialtyp.");
+                return;
+              }
+              await loadMaterials();
+            } catch (err) {
+              console.error(err);
+              alert("Tekniskt fel vid borttagning.");
+            }
+          });
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Kunde inte hämta materialtyper.");
       }
-    } else {
-      materials.push({
-        id: uuid(),
-        name,
-        unit,
-        description: desc,
-        status
-      });
     }
 
-    saveMaterials();
-    renderTable();
-    matForm.reset();
-    document.getElementById("editMatId").value = "";
-    formTitle.textContent = "Ny materialtyp";
-  });
+    materialForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = materialNameInput.value.trim();
+      const unit = materialUnitInput.value.trim();
 
-  resetBtn.addEventListener("click", () => {
-    matForm.reset();
-    document.getElementById("editMatId").value = "";
-    formTitle.textContent = "Ny materialtyp";
-  });
+      if (!name) {
+        alert("Ange ett namn.");
+        return;
+      }
 
-  renderTable();
-</script>
+      try {
+        const res = await fetch("/material-types", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, unit })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          alert(data.error || "Kunde inte spara materialtyp.");
+          return;
+        }
+
+        materialNameInput.value = "";
+        materialUnitInput.value = "";
+        await loadMaterials();
+      } catch (err) {
+        console.error(err);
+        alert("Tekniskt fel vid sparande.");
+      }
+    });
+
+    loadMaterials();
+  </script>
 </body>
 </html>
