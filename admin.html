@@ -383,6 +383,37 @@
     return new Date(y, m - 1, d);
   }
 
+  function calcHours(report) {
+    const fallback = parseFloat(report.timmar || report.hours || "0");
+    if (!Number.isNaN(fallback) && fallback > 0) {
+      return fallback;
+    }
+
+    const dateStr = report.datum || report.date;
+    const startStr = report.starttid || report.start;
+    const endStr = report.sluttid || report.end;
+    if (!dateStr || !startStr || !endStr) return 0;
+
+    const [sh, sm] = startStr.split(":").map(Number);
+    const [eh, em] = endStr.split(":").map(Number);
+
+    const startDate = new Date(dateStr);
+    startDate.setHours(sh || 0, sm || 0, 0, 0);
+
+    const endDate = new Date(dateStr);
+    endDate.setHours(eh || 0, em || 0, 0, 0);
+
+    if (endDate <= startDate) {
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
+    const diffMinutes = (endDate - startDate) / 60000;
+    const roundedMinutes = Math.round(diffMinutes / 10) * 10; // 10-minuterssteg
+    const roundedHours = roundedMinutes / 60;
+
+    return roundedHours > 0 ? parseFloat(roundedHours.toFixed(2)) : 0;
+  }
+
   function getObCategory(dateObj) {
     const dow = dateObj.getDay();
     const hour = dateObj.getHours();
@@ -532,7 +563,7 @@
       const ob = splitObHours(r);
       const tr = document.createElement("tr");
 
-      const totalHours = parseFloat(r.timmar || "0") || 0;
+      const totalHours = calcHours(r);
       const travel = parseFloat(r.restid || "0") || 0;
 
       const projectName = getProjectName(r);
@@ -628,7 +659,7 @@
     let rowsHtml = "";
     list.forEach((r) => {
       const ob = splitObHours(r);
-      const totalHours = parseFloat(r.timmar || "0") || 0;
+      const totalHours = calcHours(r);
       const travel = parseFloat(r.restid || "0") || 0;
 
       const projectName = getProjectName(r);
