@@ -140,7 +140,8 @@
       btn.textContent = "Loggar in...";
 
       try {
-        const res = await fetch("http://localhost:3000/login", {
+        const apiBase = window.location.origin || "http://localhost:3000";
+        const res = await fetch(`${apiBase}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),

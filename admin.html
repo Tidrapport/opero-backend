@@ -234,6 +234,138 @@
     .filters button:hover {
       background: #f3f4f6;
     }
+
+    .view-toggle {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-left: auto;
+    }
+    .view-toggle button {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .view-toggle button.active {
+      background: #1d4ed8;
+      color: #fff;
+      border-color: #1d4ed8;
+    }
+
+    /* Mobil app-liknande kort */
+    .mobile-cards {
+      display: none;
+      margin-top: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mobile-card {
+      border-radius: 14px;
+      background: #facc15;
+      color: #111827;
+      padding: 12px 14px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    .mobile-card header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .mobile-card .pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #0f172a;
+      color: #facc15;
+    }
+
+    .mobile-card .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      margin-top: 6px;
+      border-bottom: 1px solid rgba(15,23,42,0.15);
+      padding-bottom: 4px;
+    }
+
+    .mobile-card .row:last-of-type {
+      border-bottom: none;
+    }
+
+    .mobile-card .label {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .mobile-card .value {
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .mobile-card .actions {
+      margin-top: 8px;
+      justify-content: flex-start;
+    }
+
+    /* Mobilanpassning */
+    @media (max-width: 768px) {
+      .filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filters label {
+        width: 100%;
+      }
+      table {
+        border: 0;
+      }
+      thead {
+        display: none;
+      }
+      tr {
+        display: block;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 18px rgba(15,23,42,0.08);
+        border-radius: 12px;
+        background: #fff;
+        padding: 10px 12px;
+      }
+      td {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        border: none;
+        padding: 6px 0;
+      }
+      td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6b7280;
+      }
+      .actions {
+        justify-content: flex-start;
+      }
+
+      /* Dölj tabellen och visa kort när mobile-mode är aktiv */
+      body.mobile-mode table {
+        display: none;
+      }
+      body.mobile-mode .mobile-cards {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
@@ -255,11 +387,17 @@
   <a href="projects.html" class="nav-item admin-only">Projekt</a>
   <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
   <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
-  <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-  <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
 
-  <div class="logout" id="logoutBtn">⬅ Logga ut</div>
-</aside>
+    <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+      <div class="view-toggle" style="justify-content:flex-start;">
+        <button type="button" id="mobileViewBtnSidebar">Mobilvy</button>
+        <button type="button" id="tableViewBtnSidebar" class="active">Tabellvy</button>
+      </div>
+      <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+    </div>
+  </aside>
 
 <!-- MAIN -->
 <main class="main">
@@ -323,14 +461,20 @@
       </label>
 
       <button id="clearFiltersBtn">Rensa filter</button>
+      <div class="view-toggle">
+        <button type="button" id="mobileViewBtn">Mobilvy</button>
+        <button type="button" id="tableViewBtn" class="active">Tabellvy</button>
+      </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Datum</th>
-          <th>Användare</th>
-          <th>Kund</th>
+  <div id="mobileCards" class="mobile-cards"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Användare</th>
+        <th>Kund</th>
           <th>Projekt</th>
           <th>Underprojekt</th>
           <th>Avvikelser</th>
@@ -564,12 +708,17 @@
   }
 
   const tbody = document.getElementById("reportsBody");
+  const mobileCards = document.getElementById("mobileCards");
   const filterUser = document.getElementById("filterUser");
   const filterCustomer = document.getElementById("filterCustomer");
   const filterProject = document.getElementById("filterProject");
   const filterSubproject = document.getElementById("filterSubproject");
   const filterStatus = document.getElementById("filterStatus");
   const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+  const mobileViewBtn = document.getElementById("mobileViewBtn");
+  const tableViewBtn = document.getElementById("tableViewBtn");
+  const mobileViewBtnSidebar = document.getElementById("mobileViewBtnSidebar");
+  const tableViewBtnSidebar = document.getElementById("tableViewBtnSidebar");
 
   function buildFilterOptions() {
     // Användare
@@ -701,10 +850,52 @@
     });
   }
 
+  function renderMobileCards(list) {
+    mobileCards.innerHTML = "";
+    if (!list || !list.length) return;
+
+    list.forEach((r) => {
+      const ob = splitObHours(r);
+      const totalHours = calcHours(r);
+      const travel = parseFloat(r.restid || "0") || 0;
+      const projectName = getProjectName(r);
+      const subProjectName = getSubProjectName(r);
+      const devs = getDeviationsForReport(r);
+      const status = r.status === "Attesterad" ? "Attesterad" : "Ny";
+
+      const card = document.createElement("div");
+      card.className = "mobile-card";
+      card.innerHTML = `
+        <header>
+          <div>${r.userName || "-"}</div>
+          <div class="pill ${statusClass}">${status}</div>
+        </header>
+        <div class="row"><div class="label">Datum</div><div class="value">${r.datum || "-"}</div></div>
+        <div class="row"><div class="label">Projekt</div><div class="value">${projectName}</div></div>
+        <div class="row"><div class="label">Underprojekt</div><div class="value">${subProjectName || "-"}</div></div>
+        <div class="row"><div class="label">Tid</div><div class="value">${r.starttid || "-"} - ${r.sluttid || "-"}</div></div>
+        <div class="row"><div class="label">Totalt</div><div class="value">${totalHours.toFixed(1)} h</div></div>
+        <div class="row"><div class="label">OB</div><div class="value">Dag ${ob.dag.toFixed(1)} / Kväll ${ob.kväll.toFixed(1)} / Natt ${ob.natt.toFixed(1)} / Helg ${ob.helg.toFixed(1)}</div></div>
+        <div class="row"><div class="label">Restid</div><div class="value">${travel.toFixed(1)} h</div></div>
+        <div class="row"><div class="label">Avvikelser</div><div class="value">${devs.length}</div></div>
+        <div class="row"><div class="label">Kommentar</div><div class="value">${(r.comment || "-").replace(/</g, "&lt;")}</div></div>
+        <div class="actions">
+          <button class="btn-small edit">Redigera</button>
+          <button class="btn-small save" disabled>Spara</button>
+          <button class="btn-small view-comment">Se kommentar</button>
+          <button class="btn-small attest">${status === "Attesterad" ? "Ta bort attest" : "Attestera"}</button>
+          <button class="btn-small delete">Ta bort</button>
+        </div>
+      `;
+      mobileCards.appendChild(card);
+    });
+  }
+
   function render() {
     tbody.innerHTML = "";
 
     const filtered = getFilteredReports();
+    renderMobileCards(filtered);
 
     filtered.forEach((r) => {
       const realIndex = reports.indexOf(r);
@@ -731,29 +922,29 @@
 
       tr.innerHTML = `
         <td><input type="date" class="row-input date" value="${r.datum || ""}" disabled /></td>
-        <td><input class="row-input name-input" type="text" value="${r.userName || ""}" disabled /></td>
-        <td><input class="row-input customer-input" type="text" value="${getCustomerName(r) || ""}" disabled /></td>
-        <td><input class="row-input project-input" type="text" value="${projectName}" disabled /></td>
-        <td><input class="row-input subproject-input" type="text" value="${subProjectName || ""}" disabled /></td>
-        <td>
+        <td data-label="Användare"><input class="row-input name-input" type="text" value="${r.userName || ""}" disabled /></td>
+        <td data-label="Kund"><input class="row-input customer-input" type="text" value="${getCustomerName(r) || ""}" disabled /></td>
+        <td data-label="Projekt"><input class="row-input project-input" type="text" value="${projectName}" disabled /></td>
+        <td data-label="Underprojekt"><input class="row-input subproject-input" type="text" value="${subProjectName || ""}" disabled /></td>
+        <td data-label="Avvikelser">
           ${devCount ? `<span class="status-badge status-ny">${devCount} st</span>${devListHtml}` : "<small>Inga</small>"}
         </td>
-        <td><input type="time" step="600" class="row-input start-input" value="${r.starttid || ""}" disabled /></td>
-        <td><input type="time" step="600" class="row-input end-input" value="${r.sluttid || ""}" disabled /></td>
-        <td class="total-hours">${totalHours.toFixed(1)}</td>
-        <td>${ob.dag.toFixed(1)}</td>
-        <td>${ob.kväll.toFixed(1)}</td>
-        <td>${ob.natt.toFixed(1)}</td>
-        <td>${ob.helg.toFixed(1)}</td>
-        <td><input type="number" step="0.1" min="0" class="row-input travel-input" value="${travel.toFixed(1)}" disabled /></td>
-        <td>
+        <td data-label="Start"><input type="time" step="600" class="row-input start-input" value="${r.starttid || ""}" disabled /></td>
+        <td data-label="Slut"><input type="time" step="600" class="row-input end-input" value="${r.sluttid || ""}" disabled /></td>
+        <td data-label="Totalt (h)" class="total-hours">${totalHours.toFixed(1)}</td>
+        <td data-label="OB dag">${ob.dag.toFixed(1)}</td>
+        <td data-label="OB kväll">${ob.kväll.toFixed(1)}</td>
+        <td data-label="OB natt">${ob.natt.toFixed(1)}</td>
+        <td data-label="OB helg">${ob.helg.toFixed(1)}</td>
+        <td data-label="Restid"><input type="number" step="0.1" min="0" class="row-input travel-input" value="${travel.toFixed(1)}" disabled /></td>
+        <td data-label="Status">
           <span class="status-badge ${
             r.status === "Attesterad" ? "status-attesterad" : "status-ny"
           }">
             ${r.status === "Attesterad" ? "🔒 Attesterad" : "Ny"}
           </span>
         </td>
-        <td>
+        <td data-label="Åtgärder">
           <div class="actions">
             <button class="btn-small edit">Redigera</button>
             <button class="btn-small save" disabled>Spara</button>
@@ -909,8 +1100,21 @@
     filterProject.value = "";
     filterSubproject.value = "";
     filterStatus.value = "";
+    filterCustomer.value = "";
     render();
   });
+
+  function setMobileMode(on) {
+    document.body.classList.toggle("mobile-mode", on);
+    [mobileViewBtn, mobileViewBtnSidebar].forEach((btn) => btn?.classList.toggle("active", on));
+    [tableViewBtn, tableViewBtnSidebar].forEach((btn) => btn?.classList.toggle("active", !on));
+    render();
+  }
+
+  mobileViewBtn?.addEventListener("click", () => setMobileMode(true));
+  tableViewBtn?.addEventListener("click", () => setMobileMode(false));
+  mobileViewBtnSidebar?.addEventListener("click", () => setMobileMode(true));
+  tableViewBtnSidebar?.addEventListener("click", () => setMobileMode(false));
 
   document.getElementById("downloadPdfBtn").addEventListener("click", () => {
     const attested = reports.filter((r) => r.status === "Attesterad");
