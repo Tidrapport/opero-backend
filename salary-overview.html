@@ -73,7 +73,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
+      grid-template-columns: 1fr;
       gap: 20px;
       align-items: flex-start;
     }
@@ -158,30 +158,78 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-top: 10px;
     }
 
     .summary-item {
-      padding: 14px;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      font-size: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #e6edf7;
+      font-size: 13px;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
     }
 
-    .summary-item strong {
-      display: block;
-      margin-bottom: 2px;
-      font-size: 12px;
+    .summary-item .label {
+      font-size: 11px;
       color: #6b7280;
       text-transform: uppercase;
     }
 
-    .summary-item span {
-      font-size: 16px;
-      font-weight: 600;
+    .summary-item .value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .big-blue {
+      background: linear-gradient(90deg,#0f57c8,#1146a8);
+      color: white;
+      padding: 18px;
+      border-radius: 12px;
+      min-height: 86px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .big-blue .label { opacity: 0.9; font-size: 13px; }
+    .big-blue .value { font-size: 22px; font-weight: 700; }
+
+    .big-orange {
+      background: linear-gradient(90deg,#f97316,#fb923c);
+      color: white;
+      padding: 18px;
+      border-radius: 12px;
+      min-height: 86px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .big-white {
+      background: #ffffff;
+      color: #0f172a;
+      padding: 18px;
+      border-radius: 12px;
+      min-height: 86px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid #e6edf7;
+    }
+
+    .big-white .label { opacity: 0.9; font-size: 13px; }
+    .big-white .value { font-size: 22px; font-weight: 700; }
+
+    .ob-section {
+      margin-top: 18px;
     }
 
     .muted {
@@ -238,87 +286,88 @@
     </div>
 
     <div class="layout">
-      <section class="card underlag">
-        <h2>Underlag</h2>
-        <p id="underlagIntro">Beräkningarna baseras på dina rapporterade timmar denna månad.</p>
-
-        <div class="field-grid" id="underlagFields">
-          <div class="field">
-            <label for="hourlyWage">Timlön (kr/h)</label>
-            <input type="number" id="hourlyWage" value="200" min="0" step="1" />
-          </div>
-          <div class="field">
-            <label for="taxPercent">Kommunalskatt (%)</label>
-            <input type="number" id="taxPercent" value="30" min="0" max="60" step="1" />
-          </div>
-          <div class="field">
-            <label for="monthHours">Timmar denna månad</label>
-            <input type="number" id="monthHours" value="0" min="0" step="0.1" />
-          </div>
-          <div class="field">
-            <label for="perDiemPercent">Semesterersättning (%)</label>
-            <input type="number" id="perDiemPercent" value="13" min="0" max="20" step="0.5" />
-          </div>
-        </div>
-
-        <button class="btn-primary" id="recalcBtn">Räkna om lön</button>
-        <p class="note" id="userNote">
-          Detta är en förenklad uppskattning. Riktig lön beräknas i lönesystemet.
-        </p>
-        <p class="note" id="adminOnlyNote" style="display:none;">
-          Endast admin kan justera timlön och skatteunderlag. Kontakta admin för ändringar.
-        </p>
-        <p class="note" id="lockedNote" style="display:none;">
-          Lönedata är låsta. Be en admin uppdatera timlön och skattetabell.
-        </p>
-      </section>
-
       <section class="card summary">
-        <h2>Sammanställning</h2>
-        <div class="summary-grid">
-          <div class="summary-item">
-            <strong>Bruttolön</strong>
-            <span id="grossPay">0 kr</span>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+          <div style="grid-column: 1 / -1;">
+            <!-- Removed small summary cards (visual) per request. Keep hidden inputs so calculations still work -->
+            <input id="hourlyWage" type="hidden" value="0" />
+            <input id="monthHours" type="hidden" value="0" />
+            <input id="traktamente_amount" type="hidden" value="0" />
+
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+              <!-- kommunalskatt and semester inputs removed per request -->
+              <button id="recalcBtn" class="btn-primary">Uppdatera</button>
+              <button id="downloadPdfBtn" class="btn-primary" style="background:#10b981; margin-left:6px;">Ladda ner lönespecifikation (PDF)</button>
+            </div>
           </div>
-          <div class="summary-item">
-            <strong>Kommunalskatt</strong>
-            <span id="kommunalskatt">0 kr</span>
+
+          <div class="big-white">
+            <div class="label">Timlön</div>
+            <div class="value" id="hourlyLarge">0 kr</div>
           </div>
-          <div class="summary-item">
-            <strong>Semesterersättning</strong>
-            <span id="semesterersattning">0 kr</span>
+
+            <div class="big-blue">
+              <div class="label">Total bruttolön</div>
+              <div class="value" id="grossPay">0 kr</div>
+              <div class="muted">Före skatt (Tabell 30)</div>
+            </div>
+            <div class="big-orange">
+              <div class="label">Nettolön (efter skatt)</div>
+              <div class="value" id="netPay">0 kr</div>
+            </div>
+
           </div>
-          <div class="summary-item">
-            <strong>Arbetsgivaravgifter</strong>
-            <span id="aga">0 kr</span>
-          </div>
-          <div class="summary-item">
-            <strong>Nettolön (ca)</strong>
-            <span id="netPay">0 kr</span>
-          </div>
-          <div class="summary-item" id="summarySem" style="display:none;">
-            <strong>Semesterersättning</strong>
-            <span id="semesterSummary">0 kr</span>
-            <div class="muted">Visas endast i PDF</div>
+
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; margin-top:12px;">
+            <div class="big-white">
+              <div class="label">Totala timmar</div>
+              <div class="value" id="monthHoursLarge">0.0 h</div>
+            </div>
+            <div class="big-white">
+              <div class="label">Sparad restidsersättning</div>
+              <div class="value" id="savedRestLarge">0 kr</div>
+            </div>
+            <div class="big-white">
+              <div class="label">Traktamente</div>
+              <div class="value" id="traktLarge">0 kr</div>
+            </div>
+            <div class="big-white">
+              <div class="label">OB-tillägg</div>
+              <div class="value" id="obLarge">0 kr</div>
+            </div>
           </div>
         </div>
 
-        <p class="note">
-          Formler:
-        </p>
-        <ul>
-          <li>Bruttolön = timlön × timmar</li>
-          <li>Kommunalskatt = bruttolön × skatte%</li>
-          <li>Semesterersättning (sparas, ej i netto) = bruttolön × 13%</li>
-          <li>Arbetsgivaravgifter = bruttolön × 31.42%</li>
-        </ul>
-
-        <button class="btn-primary" id="downloadPdfBtn" style="margin-top:14px;">
-          Ladda ner lönespecifikation (PDF)
-        </button>
+        <div class="ob-section card" style="margin-top:16px; padding:14px;">
+          <h3 style="margin:0 0 8px;">OB-fördelning</h3>
+          <div style="display:flex; gap:18px; margin-top:12px;">
+            <div style="flex:1; text-align:center;">
+              <div class="label">Dag (0%)</div>
+              <div class="value">0.0 h</div>
+              <div class="muted">0.00 kr</div>
+            </div>
+            <div style="flex:1; text-align:center;">
+              <div class="label">Kväll (29%)</div>
+              <div class="value">0.0 h</div>
+              <div class="muted">+0.00 kr</div>
+            </div>
+            <div style="flex:1; text-align:center;">
+              <div class="label">Natt (63%)</div>
+              <div class="value">0.0 h</div>
+              <div class="muted">+0.00 kr</div>
+            </div>
+            <div style="flex:1; text-align:center;">
+              <div class="label">Helg (113%)</div>
+              <div class="value">0.0 h</div>
+              <div class="muted">+0.00 kr</div>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script src="auth.js"></script>
   <script>
@@ -386,30 +435,115 @@
       return sum;
     }
 
+      function calcMonthTraktamente() {
+        const reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const today = new Date();
+        let sum = 0;
+        reports.forEach(r => {
+          if (!r.datum) return;
+          const d = parseDate(r.datum);
+          if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) {
+            const amt = Number(r.traktamente_amount || r.traktAmount || 0) || 0;
+            sum += amt;
+          }
+        });
+        return sum;
+      }
+
+      function calcMonthRestPay() {
+        const reports = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const today = new Date();
+        let sum = 0;
+        reports.forEach(r => {
+          if (!r.datum) return;
+          const d = parseDate(r.datum);
+          if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()) {
+            const hours = Number(r.restid || r.restId || 0) || 0;
+            sum += hours * 170; // 170 kr per restimme
+          }
+        });
+        return sum;
+      }
+
     function formatKr(value) {
       return Math.round(value).toLocaleString("sv-SE") + " kr";
     }
 
     function recalc() {
-      const hourlyWage = Number(document.getElementById("hourlyWage").value || 0);
-      const taxPercent = Number(document.getElementById("taxPercent").value || 0) / 100;
-      const perDiemPercent = Number(document.getElementById("perDiemPercent").value || 0) / 100;
-      const hours = Number(document.getElementById("monthHours").value || 0);
+      const hourlyWage = Number((document.getElementById("hourlyWage") && document.getElementById("hourlyWage").value) || 0);
+      const taxEl = document.getElementById("taxPercent");
+      const taxPercent = taxEl ? Number(taxEl.value || 0) / 100 : 0;
+      const perDiemEl = document.getElementById("perDiemPercent");
+      const perDiemPercent = perDiemEl ? Number(perDiemEl.value || 0) / 100 : 0;
+      const monthHoursEl = document.getElementById("monthHours");
+      const hours = Number((monthHoursEl && monthHoursEl.value) || 0);
 
-      const gross = hourlyWage * hours;
+      const grossBase = hourlyWage * hours; // timlön * arbetade timmar
+      const restPay = calcMonthRestPay(); // restidsersättning (170 kr/h)
+      const gross = grossBase + restPay; // brutto inkluderar restidsersättning
       const kommunal = gross * taxPercent;
-      const semester = gross * perDiemPercent; // sparas separat, inte del av brutto/netto
+      const semester = grossBase * perDiemPercent; // semesterersättning räknas endast på arbetslön (ej restidsersättning)
       const aga = gross * 0.3142;
-      const net = gross - kommunal; // semester läggs inte till nettot
+      const traktSum = calcMonthTraktamente();
+      // Traktamente är skattefritt och läggs på nettolön
+      const net = gross - kommunal + traktSum;
 
-      document.getElementById("grossPay").textContent = formatKr(gross);
-      document.getElementById("kommunalskatt").textContent = formatKr(kommunal);
-      document.getElementById("semesterersattning").textContent = formatKr(semester);
-      document.getElementById("aga").textContent = formatKr(aga);
-      document.getElementById("netPay").textContent = formatKr(net);
-      document.getElementById("semesterSummary").textContent = formatKr(semester);
+      const grossEl = document.getElementById("grossPay");
+      if (grossEl) grossEl.textContent = formatKr(gross);
 
-      return { hourlyWage, taxPercent, perDiemPercent, hours, gross, kommunal, semester, aga, net };
+      const kommunEl = document.getElementById("kommunalskatt");
+      if (kommunEl) kommunEl.textContent = formatKr(kommunal);
+
+      const semEl = document.getElementById("semesterersattning");
+      if (semEl) semEl.textContent = formatKr(semester);
+
+      const agaEl = document.getElementById("aga");
+      if (agaEl) agaEl.textContent = formatKr(aga);
+
+      const netEl = document.getElementById("netPay");
+      if (netEl) netEl.textContent = formatKr(net);
+
+      const hourlyLargeEl = document.getElementById("hourlyLarge");
+      if (hourlyLargeEl) hourlyLargeEl.textContent = formatKr(hourlyWage);
+
+      const traktEl = document.getElementById("traktamenteSum");
+      if (traktEl) traktEl.textContent = formatKr(traktSum);
+
+      const restEl = document.getElementById("restPaySum");
+      if (restEl) restEl.textContent = formatKr(restPay);
+
+      const semSummaryEl = document.getElementById("semesterSummary");
+      if (semSummaryEl) semSummaryEl.textContent = formatKr(semester);
+
+      const grundEl = document.getElementById("grundlon");
+      if (grundEl) grundEl.textContent = formatKr(grossBase);
+
+      const obEl = document.getElementById("obAllowance");
+      if (obEl) obEl.textContent = formatKr(0);
+
+      const savedEl = document.getElementById("savedRestPay");
+      if (savedEl) savedEl.textContent = formatKr(0);
+
+      // Update large white cards
+      const hourlyLargeEl = document.getElementById("hourlyLarge");
+      if (hourlyLargeEl) hourlyLargeEl.textContent = formatKr(hourlyWage);
+
+      const monthHoursLargeEl = document.getElementById("monthHoursLarge");
+      if (monthHoursLargeEl) monthHoursLargeEl.textContent = (hours || 0).toFixed(1) + " h";
+
+      const semesterLargeEl = document.getElementById("semesterLarge");
+      if (semesterLargeEl) semesterLargeEl.textContent = formatKr(semester);
+
+      const savedRestLargeEl = document.getElementById("savedRestLarge");
+      if (savedRestLargeEl) savedRestLargeEl.textContent = formatKr(0);
+
+      const traktLargeEl = document.getElementById("traktLarge");
+      if (traktLargeEl) traktLargeEl.textContent = formatKr(traktSum);
+
+      const obLargeEl = document.getElementById("obLarge");
+      if (obLargeEl) obLargeEl.textContent = formatKr(0);
+
+      return { hourlyWage, taxPercent, perDiemPercent, hours, gross, kommunal, semester, aga, net, traktSum, restPay };
     }
 
     function lockForNonAdmin() {
@@ -489,51 +623,64 @@
       return `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())} till ${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
     }
 
-    document.getElementById("downloadPdfBtn").addEventListener("click", () => {
+    document.getElementById("downloadPdfBtn").addEventListener("click", async () => {
+      // Generate a printable HTML block and render it to PDF using html2canvas + jsPDF
       const calc = recalc();
       const now = new Date();
       const periodText = formatDateRangeForMonth(now);
-      const win = window.open("", "_blank");
-      if (!win) {
-        alert("Popup blockerad – tillåt popup för att ladda ner PDF.");
-        return;
-      }
 
       const html = `
-        <html lang="sv">
-        <head>
-          <meta charset="UTF-8" />
-          <title>Lönespecifikation</title>
-          <style>
-            body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 24px; }
-            h1 { margin: 0 0 8px; }
-            p { margin: 4px 0 12px; color: #4b5563; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            th, td { padding: 8px; border: 1px solid #e5e7eb; text-align: left; }
-            th { background: #f9fafb; text-transform: uppercase; font-size: 12px; color: #6b7280; }
-          </style>
-        </head>
-        <body>
-          <h1>Lönespecifikation</h1>
-          <p>Period: ${periodText}</p>
-          <table>
+        <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding:20px; color:#111827;">
+          <h1 style="margin:0 0 8px;">Lönespecifikation</h1>
+          <p style="margin:4px 0 12px; color:#4b5563;">Period: ${periodText}</p>
+          <table style="width:100%; border-collapse:collapse; margin-top:12px; font-size:13px;">
             <tbody>
-              <tr><th>Timlön</th><td>${calc.hourlyWage.toFixed(2)} kr</td></tr>
-              <tr><th>Timmar</th><td>${calc.hours.toFixed(1)} h</td></tr>
-              <tr><th>Bruttolön</th><td>${formatKr(calc.gross)}</td></tr>
-              <tr><th>Kommunalskatt</th><td>${formatKr(calc.kommunal)}</td></tr>
-              <tr><th>Semesterersättning (sparas)</th><td>${formatKr(calc.semester)}</td></tr>
-              <tr><th>Arbetsgivaravgifter</th><td>${formatKr(calc.aga)}</td></tr>
-              <tr><th>Nettolön (ca)</th><td>${formatKr(calc.net)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Timlön</th><td style="padding:8px; border:1px solid #e5e7eb;">${calc.hourlyWage.toFixed(2)} kr</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Timmar</th><td style="padding:8px; border:1px solid #e5e7eb;">${calc.hours.toFixed(1)} h</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Bruttolön</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.gross)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Kommunalskatt</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.kommunal)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Semesterersättning (sparas)</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.semester)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Traktamente (skattefritt)</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.traktSum || 0)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Restidsersättning</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.restPay || 0)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Arbetsgivaravgifter</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.aga)}</td></tr>
+              <tr><th style="text-align:left; padding:8px; border:1px solid #e5e7eb; background:#f9fafb;">Nettolön</th><td style="padding:8px; border:1px solid #e5e7eb;">${formatKr(calc.net)}</td></tr>
             </tbody>
           </table>
-        </body>
-        </html>
+        </div>
       `;
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      win.print();
+
+      // Create offscreen container
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-10000px';
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      try {
+        // Wait for html2canvas and jspdf to be available
+        if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+          alert('PDF-bibliotek saknas. Försök ladda om sidan.');
+          document.body.removeChild(container);
+          return;
+        }
+
+        // Render container to canvas (higher scale for better quality)
+        const canvas = await html2canvas(container, { scale: 2 });
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+        const filename = `lonespecifikation-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}.pdf`;
+        pdf.save(filename);
+      } catch (err) {
+        console.error('Kunde inte skapa PDF:', err);
+        alert('Kunde inte skapa PDF. Se konsolen för detaljer.');
+      } finally {
+        document.body.removeChild(container);
+      }
     });
   </script>
 </body>

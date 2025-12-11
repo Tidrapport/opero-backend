@@ -545,13 +545,15 @@ app.post("/time-reports", requireAuth, (req, res) => {
   const comment = body.comment || body.comment || null;
   const restid = body.restid != null ? Number(body.restid) : 0;
   const status = body.status || "Ny";
+  const traktType = body.traktamente_type || body.traktType || null;
+  const traktAmount = body.traktamente_amount != null ? Number(body.traktamente_amount) : (body.traktAmount != null ? Number(body.traktAmount) : 0);
   const materials = Array.isArray(body.materials) ? body.materials : [];
 
   db.run(
     `INSERT INTO time_reports
-      (user_id, user_name, datum, starttid, sluttid, timmar, project_id, subproject_id, job_role_id, comment, restid, status)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [userId, userName, datum, starttid, sluttid, timmar, projectId, subprojectId, jobRoleId, comment, restid, status],
+      (user_id, user_name, datum, starttid, sluttid, timmar, project_id, subproject_id, job_role_id, comment, restid, status, traktamente_type, traktamente_amount)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [userId, userName, datum, starttid, sluttid, timmar, projectId, subprojectId, jobRoleId, comment, restid, status, traktType, traktAmount],
     function (err) {
       if (err) {
         console.error("DB-fel vid POST /time-reports:", err);
@@ -605,11 +607,13 @@ app.put("/time-reports/:id", requireAuth, (req, res) => {
     const comment = body.comment || report.comment;
     const restid = body.restid != null ? Number(body.restid) : report.restid;
     const status = body.status || report.status;
+    const traktType = body.traktamente_type || body.traktType || report.traktamente_type || null;
+    const traktAmount = body.traktamente_amount != null ? Number(body.traktamente_amount) : (body.traktAmount != null ? Number(body.traktAmount) : (report.traktamente_amount != null ? Number(report.traktamente_amount) : 0));
     const materials = Array.isArray(body.materials) ? body.materials : null;
 
     db.run(
-      `UPDATE time_reports SET user_name = ?, datum = ?, starttid = ?, sluttid = ?, timmar = ?, project_id = ?, subproject_id = ?, job_role_id = ?, comment = ?, restid = ?, status = ?, updated_at = datetime('now') WHERE id = ?`,
-      [userName, datum, starttid, sluttid, timmar, projectId, subprojectId, jobRoleId, comment, restid, status, id],
+      `UPDATE time_reports SET user_name = ?, datum = ?, starttid = ?, sluttid = ?, timmar = ?, project_id = ?, subproject_id = ?, job_role_id = ?, comment = ?, restid = ?, status = ?, traktamente_type = ?, traktamente_amount = ?, updated_at = datetime('now') WHERE id = ?`,
+      [userName, datum, starttid, sluttid, timmar, projectId, subprojectId, jobRoleId, comment, restid, status, traktType, traktAmount, id],
       function (uErr) {
         if (uErr) {
           console.error("DB-fel vid UPDATE tidrapport:", uErr);

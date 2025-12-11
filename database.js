@@ -120,6 +120,28 @@ db.serialize(() => {
     );
   `);
 
+  // Lägg till traktamente-kolumner om de saknas (migration)
+  db.all(`PRAGMA table_info(time_reports);`, (err, cols) => {
+    if (err) {
+      console.error("Kunde inte läsa schema för time_reports:", err);
+      return;
+    }
+    const hasType = cols.some((c) => c.name === "traktamente_type");
+    const hasAmount = cols.some((c) => c.name === "traktamente_amount");
+    if (!hasType) {
+      db.run(`ALTER TABLE time_reports ADD COLUMN traktamente_type TEXT;`, (e) => {
+        if (e) console.error("Kunde inte lägga till traktamente_type:", e);
+        else console.log('Kolumnen "traktamente_type" har lagts till i time_reports.');
+      });
+    }
+    if (!hasAmount) {
+      db.run(`ALTER TABLE time_reports ADD COLUMN traktamente_amount REAL DEFAULT 0;`, (e) => {
+        if (e) console.error("Kunde inte lägga till traktamente_amount:", e);
+        else console.log('Kolumnen "traktamente_amount" har lagts till i time_reports.');
+      });
+    }
+  });
+
   // --- Report materials ---
   db.run(`
     CREATE TABLE IF NOT EXISTS report_materials (
