@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planering</title>
+  <style>
+    * { box-sizing: border-box; font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: flex; background: #f5f7fb; color: #0f172a; }
+    .sidebar { width: 240px; background: #0f172a; color: #e5e7eb; padding: 16px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .sidebar h2 { font-size: 18px; margin: 0 0 16px; }
+    .nav-section-title { font-size: 11px; text-transform: uppercase; opacity: 0.6; margin-top: 12px; }
+    .nav-item { padding: 8px 10px; border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+    .nav-item.active { background: #1d4ed8; }
+    .nav-item:hover { background: #111827; }
+    .logout { margin-top: auto; font-size: 13px; color: #f97373; cursor: pointer; }
+
+    .main { flex: 1; padding: 28px 36px; }
+    .hero { background: linear-gradient(180deg, #fff, #f5f7fb); padding: 18px 20px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.05); margin-bottom: 14px; }
+    .hero h1 { margin: 0; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+    .hero p { margin: 4px 0 0; color: #64748b; font-size: 15px; }
+    .welcome { font-size: 14px; color: #374151; }
+
+    .layout { display: flex; flex-direction: column; gap: 18px; align-items: stretch; }
+    .card { background: #fff; border-radius: 16px; padding: 18px 18px 14px; box-shadow: 0 12px 28px rgba(15,23,42,0.06); border: 1px solid #e5e7eb; }
+    .card h2 { margin: 0 0 6px; font-size: 20px; }
+    .card p { margin: 0 0 10px; color: #64748b; }
+
+    .timeline-header { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btn-icon, .btn-ghost { background: #fff; border: 1px solid #dce3f0; color: #0f172a; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600; display: inline-flex; gap: 8px; align-items: center; }
+    .btn-icon:hover, .btn-ghost:hover { border-color: #cbd5e1; }
+    .btn-primary { background: #0b60e6; color: #fff; border: none; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+    .btn-primary:hover { background: #094ec2; }
+    .view-switch { display: flex; gap: 6px; align-items: center; }
+    .view-switch .pill-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid #dce3f0; background: #fff; cursor: pointer; font-weight: 600; color: #0f172a; }
+    .view-switch .pill-btn.active { background: #0b60e6; color: #fff; border-color: #0b60e6; }
+
+    .timeline-shell { margin-top: 6px; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #f8fafc; }
+    .timeline-scroll { overflow-x: auto; }
+    .week-labels { display: grid; border-bottom: 1px solid #e2e8f0; background: #f1f5f9; font-weight: 700; color: #475569; }
+    .week-label { padding: 10px; border-right: 1px solid #e2e8f0; text-align: center; }
+    .week-label:last-child { border-right: none; }
+
+    .day-grid { display: grid; background: #fff; }
+    .day-cell { min-height: 140px; padding: 12px; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; position: relative; background: #fff; }
+    .day-cell.today { background: #e9f1ff; }
+    .day-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+    .day-name { font-weight: 700; font-size: 13px; color: #0f172a; text-transform: lowercase; }
+    .day-date { color: #475569; font-size: 12px; }
+
+    .assignments { display: flex; flex-direction: column; gap: 6px; }
+    .assign-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 8px 10px; font-size: 13px; color: #0f172a; }
+    .assign-card .sub { color: #64748b; font-size: 12px; margin-top: 2px; }
+
+    .empty { padding: 16px; text-align: center; color: #94a3b8; font-weight: 600; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; font-size: 13px; }
+    .field label { color: #0f172a; font-weight: 600; }
+    input, select { padding: 10px 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 1px #2563eb20; }
+
+    .list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .assign-card header { font-weight: 700; margin-bottom: 4px; }
+    .assign-card small { color: #6b7280; }
+    .assignment-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; font-size: 13px; gap: 10px; }
+    .pill { padding: 3px 8px; border-radius: 999px; background: #e0f2fe; color: #0ea5e9; font-size: 11px; }
+    .actions { display: flex; gap: 6px; }
+
+    @media (max-width: 1100px) { .layout { flex-direction: column; } }
+    @media (max-width: 700px) {
+      .main { padding: 18px; }
+      .hero h1 { font-size: 24px; }
+      .week-labels, .day-grid { min-width: 720px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>Admina Bas</h2>
+
+    <div class="nav-section">
+      <a href="dashboard.html" class="nav-item">Översikt</a>
+      <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
+      <a href="planning.html" class="nav-item active">Planering</a>
+      <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
+      <a href="contacts.html" class="nav-item">Kontakter</a>
+    </div>
+
+    <div class="nav-section-title admin-only">Administration</div>
+    <a href="admin.html" class="nav-item admin-only">Attestering</a>
+    <a href="projects.html" class="nav-item admin-only">Projekt</a>
+    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
+    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
+    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
+    <a href="planning.html" class="nav-item admin-only active">Planering</a>
+    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+    <div class="logout" id="logoutBtn">⬅ Logga ut</div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <h1>📅 Planering</h1>
+      <p>Se din arbetsplanering i tidslinjen nedan</p>
+    </div>
+
+    <div class="layout">
+      <section class="card">
+        <div class="timeline-header">
+          <div>
+            <h2>Min planering</h2>
+            <p>Klicka på ett projekt för att se mer information</p>
+          </div>
+          <div class="view-switch">
+            <span style="color:#64748b;">Visa:</span>
+            <button class="pill-btn" data-weeks="1">1v</button>
+            <button class="pill-btn active" data-weeks="2">2v</button>
+            <button class="pill-btn" data-weeks="3">3v</button>
+            <button class="pill-btn" data-weeks="4">4v</button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn-ghost" id="prevRange">‹</button>
+          <button class="btn-ghost" id="todayBtn">📅 Idag</button>
+          <button class="btn-ghost" id="nextRange">›</button>
+        </div>
+
+        <div class="timeline-shell">
+          <div class="timeline-scroll">
+            <div class="week-labels" id="weekLabels"></div>
+            <div class="day-grid" id="dayGrid"></div>
+          </div>
+          <div class="empty" id="emptyPlanning" style="display:none;">Ingen planering för denna period</div>
+        </div>
+      </section>
+
+      <section class="card admin-only" id="adminPanel">
+        <h2>Skapa planering (endast admin)</h2>
+        <form id="assignForm">
+          <div class="field">
+            <label for="assignDate">Datum</label>
+            <input type="date" id="assignDate" required />
+          </div>
+          <div class="field">
+            <label for="assignUser">Användare</label>
+            <select id="assignUser" required>
+              <option value="">Välj användare</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="assignProject">Projekt</label>
+            <select id="assignProject" required>
+              <option value="">Välj projekt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="assignSubproject">Underprojekt (valfritt)</label>
+            <select id="assignSubproject">
+              <option value="">Välj underprojekt</option>
+            </select>
+          </div>
+          <button class="btn-primary" type="submit">Spara planering</button>
+        </form>
+
+        <h2 style="margin-top:12px;">Kommande bokningar</h2>
+        <div class="list" id="assignList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    const currentUser = requireLogin();
+    setupSidebarForUser(currentUser);
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    const isAdminUser = isAdmin(currentUser);
+    if (!isAdminUser) {
+      document.getElementById("adminPanel").style.display = "none";
+    }
+
+    const weekLabels = document.getElementById("weekLabels");
+    const dayGrid = document.getElementById("dayGrid");
+    const emptyPlanning = document.getElementById("emptyPlanning");
+    const prevRangeBtn = document.getElementById("prevRange");
+    const nextRangeBtn = document.getElementById("nextRange");
+    const todayBtn = document.getElementById("todayBtn");
+    const viewButtons = document.querySelectorAll(".pill-btn[data-weeks]");
+    const assignForm = document.getElementById("assignForm");
+    const assignDate = document.getElementById("assignDate");
+    const assignUser = document.getElementById("assignUser");
+    const assignProject = document.getElementById("assignProject");
+    const assignSubproject = document.getElementById("assignSubproject");
+    const assignList = document.getElementById("assignList");
+
+    const PROJECTS_KEY = "projects";
+    const SUBPROJECTS_KEY = "subProjects";
+    const ASSIGN_KEY = "projectAssignments";
+
+    let projects = [];
+    let subProjects = [];
+    let assignments = [];
+    let users = [];
+    let rangeStart = startOfWeek(new Date());
+    let viewWeeks = 2;
+    const todayIso = toISO(new Date());
+
+    function loadProjects() {
+      try {
+        projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+        subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+      } catch { projects = []; subProjects = []; }
+
+      assignProject.innerHTML = '<option value="">Välj projekt</option>';
+      projects.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name || "Namnlöst projekt";
+        opt.dataset.name = p.name || "";
+        assignProject.appendChild(opt);
+      });
+      renderSubprojects();
+    }
+
+    function renderSubprojects() {
+      const pid = assignProject.value;
+      assignSubproject.innerHTML = '<option value="">Välj underprojekt</option>';
+      subProjects.filter(sp => !pid || sp.projectId === pid).forEach(sp => {
+        const opt = document.createElement("option");
+        opt.value = sp.id;
+        opt.textContent = sp.name || "Namnlöst";
+        opt.dataset.name = sp.name || "";
+        assignSubproject.appendChild(opt);
+      });
+    }
+
+    function loadUsers() {
+      return fetch("/admin/users", { headers: { Authorization: "Bearer " + (localStorage.getItem("token") || "") }})
+        .then(r => r.json())
+        .then(list => {
+          users = Array.isArray(list) ? list : [];
+          assignUser.innerHTML = '<option value="">Välj användare</option>';
+          users.forEach(u => {
+            const opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
+            assignUser.appendChild(opt);
+          });
+        })
+        .catch(() => { users = []; });
+    }
+
+    function loadAssignments() {
+      try {
+        assignments = JSON.parse(localStorage.getItem(ASSIGN_KEY) || "[]");
+      } catch { assignments = []; }
+    }
+
+    function saveAssignments() {
+      localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments));
+    }
+
+    function startOfWeek(date) {
+      const d = new Date(date);
+      const day = d.getDay() || 7;
+      if (day !== 1) d.setDate(d.getDate() - (day - 1));
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function toISO(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function weekdayLabel(date) {
+      const labels = ["mån", "tis", "ons", "tors", "fre", "lör", "sön"];
+      return labels[(date.getDay() + 6) % 7];
+    }
+
+    function dateLabel(date) {
+      return date.toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+    }
+
+    function getISOWeek(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function getAssignmentsForDate(dateStr) {
+      return assignments.filter(a => a.date === dateStr && (isAdminUser || a.userId === currentUser.id));
+    }
+
+    function renderTimeline() {
+      const totalDays = viewWeeks * 7;
+      weekLabels.style.gridTemplateColumns = `repeat(${totalDays}, minmax(120px, 1fr))`;
+      dayGrid.style.gridTemplateColumns = `repeat(${totalDays}, minmax(120px, 1fr))`;
+
+      weekLabels.innerHTML = "";
+      for (let w = 0; w < viewWeeks; w++) {
+        const weekStart = addDays(rangeStart, w * 7);
+        const lbl = document.createElement("div");
+        lbl.className = "week-label";
+        lbl.style.gridColumn = "span 7";
+        lbl.textContent = `Vecka ${getISOWeek(weekStart)}`;
+        weekLabels.appendChild(lbl);
+      }
+
+      dayGrid.innerHTML = "";
+      let hasAssignments = false;
+      for (let i = 0; i < totalDays; i++) {
+        const dayDate = addDays(rangeStart, i);
+        const iso = toISO(dayDate);
+        const dailyAssignments = getAssignmentsForDate(iso);
+        if (dailyAssignments.length) hasAssignments = true;
+
+        const cell = document.createElement("div");
+        cell.className = "day-cell" + (iso === todayIso ? " today" : "");
+        const head = document.createElement("div");
+        head.className = "day-head";
+        head.innerHTML = `<div class="day-name">${weekdayLabel(dayDate)}</div><div class="day-date">${dateLabel(dayDate)}</div>`;
+        cell.appendChild(head);
+
+        const list = document.createElement("div");
+        list.className = "assignments";
+        dailyAssignments.forEach(a => {
+          const item = document.createElement("div");
+          item.className = "assign-card";
+          item.innerHTML = `<strong>${a.projectName || "Projekt"}</strong><div class="sub">${a.userName || ""}${a.subProjectName ? " • " + a.subProjectName : ""}</div>`;
+          list.appendChild(item);
+        });
+
+        cell.appendChild(list);
+        dayGrid.appendChild(cell);
+      }
+
+      emptyPlanning.style.display = hasAssignments ? "none" : "block";
+    }
+
+    function renderAssignList() {
+      assignList.innerHTML = "";
+      const sorted = [...assignments].sort((a,b) => (a.date || "").localeCompare(b.date || ""));
+      sorted.forEach(a => {
+        const card = document.createElement("div");
+        card.className = "assign-card";
+        card.innerHTML = `
+          <header>${a.date || "-"} • ${a.projectName || "Projekt"}</header>
+          <small>${a.userName || ""}${a.subProjectName ? " • " + a.subProjectName : ""}</small>
+          <div style="margin-top:6px; display:flex; gap:8px;">
+            <button type="button" class="btn-primary" style="background:#fee2e2; color:#b91c1c; border:none; padding:6px 10px; border-radius:10px;" data-id="${a.id}">Ta bort</button>
+          </div>
+        `;
+        card.querySelector("button").addEventListener("click", () => {
+          assignments = assignments.filter(x => x.id !== a.id);
+          saveAssignments();
+          renderAssignList();
+          renderTimeline();
+        });
+        assignList.appendChild(card);
+      });
+    }
+
+    prevRangeBtn.addEventListener("click", () => {
+      rangeStart = addDays(rangeStart, -viewWeeks * 7);
+      renderTimeline();
+    });
+    nextRangeBtn.addEventListener("click", () => {
+      rangeStart = addDays(rangeStart, viewWeeks * 7);
+      renderTimeline();
+    });
+    todayBtn.addEventListener("click", () => {
+      rangeStart = startOfWeek(new Date());
+      renderTimeline();
+    });
+
+    viewButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        viewWeeks = Number(btn.dataset.weeks) || 2;
+        viewButtons.forEach(b => b.classList.toggle("active", b === btn));
+        renderTimeline();
+      });
+    });
+
+    assignProject.addEventListener("change", renderSubprojects);
+
+    assignForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const date = assignDate.value;
+      const userId = assignUser.value;
+      const userObj = users.find(u => String(u.id) === String(userId));
+      const projectId = assignProject.value;
+      const projectName = assignProject.options[assignProject.selectedIndex]?.dataset.name || assignProject.options[assignProject.selectedIndex]?.textContent || "Projekt";
+      const subProjectId = assignSubproject.value;
+      const subProjectName = assignSubproject.options[assignSubproject.selectedIndex]?.dataset.name || assignSubproject.options[assignSubproject.selectedIndex]?.textContent || "";
+
+      if (!date || !userId || !projectId) {
+        alert("Datum, användare och projekt krävs.");
+        return;
+      }
+
+      assignments.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : "assign_" + Date.now(),
+        date,
+        userId,
+        userName: userObj ? `${userObj.first_name || ""} ${userObj.last_name || ""}`.trim() || userObj.email : "",
+        projectId,
+        projectName,
+        subProjectId,
+        subProjectName
+      });
+      saveAssignments();
+      renderAssignList();
+      renderTimeline();
+      assignForm.reset();
+      assignDate.value = new Date().toISOString().slice(0,10);
+    });
+
+    // Init
+    assignDate.value = new Date().toISOString().slice(0,10);
+    loadProjects();
+    loadAssignments();
+    renderTimeline();
+    renderAssignList();
+    if (isAdminUser) {
+      loadUsers().then(() => {
+        renderAssignList();
+        renderTimeline();
+      });
+    }
+  </script>
+</body>
+</html>
