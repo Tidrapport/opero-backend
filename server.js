@@ -42,6 +42,10 @@ function requireAdmin(req, res, next) {
   });
 }
 
+function isAdminRole(req) {
+  return (req.user?.role || "").toLowerCase() === "admin";
+}
+
 // Test-route
 app.get("/", (req, res) => {
   res.send("Opero backend är igång!");
@@ -301,6 +305,104 @@ app.get("/me", requireAuth, (req, res) => {
       res.json(row);
     }
   );
+});
+
+// ======================
+//   PLANERINGSUPPDRAG
+// ======================
+// Hämta planeringar: admin ser alla, övriga ser sina egna
+app.get("/plans", requireAuth, (req, res) => {
+  const admin = isAdminRole(req);
+  const params = [];
+  let sql = `
+    SELECT p.*, u.first_name, u.last_name, u.email
+    FROM plans p
+    JOIN users u ON u.id = p.user_id
+  `;
+  if (!admin) {
+    sql += " WHERE p.user_id = ?";
+    params.push(req.user.id);
+  }
+  sql += " ORDER BY p.start_date, p.end_date";
+
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      console.error("DB-fel vid GET /plans:", err);
+      return res.status(500).json({ error: "Kunde inte hämta planeringar." });
+    }
+    res.json(rows || []);
+  });
+});
+
+// Skapa planering (endast admin)
+app.post("/plans", requireAdmin, (req, res) => {
+  const {
+    user_id,
+    project,
+    subproject = "",
+    contact_person = "",
+    contact_phone = "",
+    vehicle = "",
+    destination = "",
+    start_date,
+    end_date,
+    tentative = false,
+    notes = "",
+  } = req.body || {};
+
+  if (!user_id || !project || !start_date || !end_date) {
+    return res.status(400).json({ error: "user_id, project, start_date och end_date krävs." });
+  }
+
+  const start = new Date(start_date);
+  const end = new Date(end_date);
+  if (isNaN(start) || isNaN(end)) {
+    return res.status(400).json({ error: "Ogiltiga datum." });
+  }
+  if (end < start) {
+    return res.status(400).json({ error: "Slutdatum kan inte vara före startdatum." });
+  }
+
+  const cleanTentative = tentative ? 1 : 0;
+  const sql = `
+    INSERT INTO plans
+      (user_id, project, subproject, contact_person, contact_phone, vehicle, destination, start_date, end_date, tentative, notes, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  `;
+  const params = [
+    user_id,
+    String(project).trim(),
+    String(subproject || "").trim(),
+    String(contact_person || "").trim(),
+    String(contact_phone || "").trim(),
+    String(vehicle || "").trim(),
+    String(destination || "").trim(),
+    start_date,
+    end_date,
+    cleanTentative,
+    String(notes || "").trim(),
+  ];
+
+  db.run(sql, params, function (err) {
+    if (err) {
+      console.error("DB-fel vid POST /plans:", err);
+      return res.status(500).json({ error: "Kunde inte spara planeringen." });
+    }
+    db.get(
+      `SELECT p.*, u.first_name, u.last_name, u.email
+       FROM plans p
+       JOIN users u ON u.id = p.user_id
+       WHERE p.id = ?`,
+      [this.lastID],
+      (gErr, row) => {
+        if (gErr) {
+          console.error("DB-fel vid GET ny planering:", gErr);
+          return res.status(201).json({ id: this.lastID });
+        }
+        res.status(201).json(row);
+      }
+    );
+  });
 });
 
 // =========================

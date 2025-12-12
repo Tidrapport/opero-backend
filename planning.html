@@ -32,6 +32,10 @@
     .btn-icon:hover, .btn-ghost:hover { border-color: #cbd5e1; }
     .btn-primary { background: #0b60e6; color: #fff; border: none; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 700; }
     .btn-primary:hover { background: #094ec2; }
+    .btn-primary.small { padding: 8px 12px; font-size: 14px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .badge.gray { background: #e2e8f0; color: #475569; }
+    .badge.yellow { background: #fef3c7; color: #b45309; }
     .view-switch { display: flex; gap: 6px; align-items: center; }
     .view-switch .pill-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid #dce3f0; background: #fff; cursor: pointer; font-weight: 600; color: #0f172a; }
     .view-switch .pill-btn.active { background: #0b60e6; color: #fff; border-color: #0b60e6; }
@@ -66,6 +70,13 @@
     .assignment-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; font-size: 13px; gap: 10px; }
     .pill { padding: 3px 8px; border-radius: 999px; background: #e0f2fe; color: #0ea5e9; font-size: 11px; }
     .actions { display: flex; gap: 6px; }
+    .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 20; }
+    .modal-backdrop.show { display: flex; }
+    .modal { background: #fff; border-radius: 16px; width: min(900px, 100%); max-height: 90vh; overflow: auto; padding: 18px; box-shadow: 0 25px 70px rgba(15,23,42,0.25); border: 1px solid #e2e8f0; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .modal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 800px) { .modal-grid { grid-template-columns: 1fr; } }
 
     @media (max-width: 1100px) { .layout { flex-direction: column; } }
     @media (max-width: 700px) {
@@ -102,8 +113,15 @@
 
   <main class="main">
     <div class="hero">
-      <h1>📅 Planering</h1>
-      <p>Se din arbetsplanering i tidslinjen nedan</p>
+      <div class="hero-top">
+        <div>
+          <h1>📅 Planering</h1>
+          <p>Se och lägg arbetsplaneringar</p>
+        </div>
+        <div id="adminActions">
+          <button class="btn-primary small" id="openPlanModal">+ Ny planering</button>
+        </div>
+      </div>
     </div>
 
     <div class="layout">
@@ -136,46 +154,89 @@
           <div class="empty" id="emptyPlanning" style="display:none;">Ingen planering för denna period</div>
         </div>
       </section>
+      <section class="card">
+        <h2>Planeringar</h2>
+        <p id="planListSubtitle" style="margin-top:2px; color:#64748b;">Alla planeringar visas här</p>
+        <div class="list" id="planList"></div>
+      </section>
+    </div>
+  </main>
 
-      <section class="card admin-only" id="adminPanel">
-        <h2>Skapa planering (endast admin)</h2>
-        <form id="assignForm">
+  <div class="modal-backdrop" id="planModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <h2 style="margin:0;">Skapa ny planering</h2>
+          <p style="margin:2px 0 0; color:#64748b;">Tilldela användare till projekt och period</p>
+        </div>
+        <button class="btn-ghost" type="button" id="closePlanModal">✕</button>
+      </div>
+      <form id="planForm">
+        <div class="modal-grid">
           <div class="field">
-            <label for="assignDate">Datum</label>
-            <input type="date" id="assignDate" required />
-          </div>
-          <div class="field">
-            <label for="assignUser">Användare</label>
-            <select id="assignUser" required>
+            <label for="planUser">Användare *</label>
+            <select id="planUser" required>
               <option value="">Välj användare</option>
             </select>
           </div>
           <div class="field">
-            <label for="assignProject">Projekt</label>
-            <select id="assignProject" required>
+            <label for="planProject">Projekt *</label>
+            <select id="planProject" required>
               <option value="">Välj projekt</option>
             </select>
           </div>
           <div class="field">
-            <label for="assignSubproject">Underprojekt (valfritt)</label>
-            <select id="assignSubproject">
+            <label for="planSubproject">Underprojekt</label>
+            <select id="planSubproject">
               <option value="">Välj underprojekt</option>
             </select>
           </div>
-          <button class="btn-primary" type="submit">Spara planering</button>
-        </form>
-
-        <h2 style="margin-top:12px;">Kommande bokningar</h2>
-        <div class="list" id="assignList"></div>
-      </section>
+          <div class="field">
+            <label for="planContact">Kontaktperson</label>
+            <input id="planContact" placeholder="Namn på kontaktperson" />
+          </div>
+          <div class="field">
+            <label for="planContactPhone">Telefon kontaktperson</label>
+            <input id="planContactPhone" placeholder="070-123 45 67" />
+          </div>
+          <div class="field">
+            <label for="planVehicle">Fordon</label>
+            <input id="planVehicle" placeholder="Fordon/registrering" />
+          </div>
+          <div class="field">
+            <label for="planDestination">Destination / adress</label>
+            <input id="planDestination" placeholder="Arbetsplatsens adress" />
+          </div>
+          <div class="field">
+            <label for="planStart">Startdatum *</label>
+            <input type="date" id="planStart" required />
+          </div>
+          <div class="field">
+            <label for="planEnd">Slutdatum *</label>
+            <input type="date" id="planEnd" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="planNotes">Anteckningar</label>
+          <textarea id="planNotes" rows="3" style="padding:10px; border-radius:10px; border:1px solid #e2e8f0;" placeholder="Frivilliga anteckningar om planeringen"></textarea>
+        </div>
+        <div class="field" style="flex-direction: row; align-items: center; gap: 8px;">
+          <input type="checkbox" id="planTentative" />
+          <label for="planTentative" style="margin: 0;">Eventuellt jobb</label>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 10px;">
+          <button class="btn-ghost" type="button" id="cancelPlanBtn">Avbryt</button>
+          <button class="btn-primary" type="submit">Skapa planering</button>
+        </div>
+      </form>
     </div>
-  </main>
+  </div>
 
   <script src="auth.js"></script>
   <script>
     const currentUser = requireLogin();
     setupSidebarForUser(currentUser);
-
+    const token = localStorage.getItem("token") || "";
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.clear();
       window.location.href = "login.html";
@@ -183,7 +244,8 @@
 
     const isAdminUser = isAdmin(currentUser);
     if (!isAdminUser) {
-      document.getElementById("adminPanel").style.display = "none";
+      const adminActions = document.getElementById("adminActions");
+      if (adminActions) adminActions.style.display = "none";
     }
 
     const weekLabels = document.getElementById("weekLabels");
@@ -193,79 +255,35 @@
     const nextRangeBtn = document.getElementById("nextRange");
     const todayBtn = document.getElementById("todayBtn");
     const viewButtons = document.querySelectorAll(".pill-btn[data-weeks]");
-    const assignForm = document.getElementById("assignForm");
-    const assignDate = document.getElementById("assignDate");
-    const assignUser = document.getElementById("assignUser");
-    const assignProject = document.getElementById("assignProject");
-    const assignSubproject = document.getElementById("assignSubproject");
-    const assignList = document.getElementById("assignList");
+    const planList = document.getElementById("planList");
+    const planListSubtitle = document.getElementById("planListSubtitle");
 
-    const PROJECTS_KEY = "projects";
-    const SUBPROJECTS_KEY = "subProjects";
-    const ASSIGN_KEY = "projectAssignments";
+    const planModal = document.getElementById("planModal");
+    const openPlanModal = document.getElementById("openPlanModal");
+    const closePlanModal = document.getElementById("closePlanModal");
+    const cancelPlanBtn = document.getElementById("cancelPlanBtn");
+    const planForm = document.getElementById("planForm");
+    const planUser = document.getElementById("planUser");
+    const planProject = document.getElementById("planProject");
+    const planSubproject = document.getElementById("planSubproject");
+    const planContact = document.getElementById("planContact");
+    const planContactPhone = document.getElementById("planContactPhone");
+    const planVehicle = document.getElementById("planVehicle");
+    const planDestination = document.getElementById("planDestination");
+    const planStart = document.getElementById("planStart");
+    const planEnd = document.getElementById("planEnd");
+    const planNotes = document.getElementById("planNotes");
+    const planTentative = document.getElementById("planTentative");
 
-    let projects = [];
-    let subProjects = [];
-    let assignments = [];
+    let plans = [];
     let users = [];
     let rangeStart = startOfWeek(new Date());
     let viewWeeks = 2;
     const todayIso = toISO(new Date());
-
-    function loadProjects() {
-      try {
-        projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-        subProjects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
-      } catch { projects = []; subProjects = []; }
-
-      assignProject.innerHTML = '<option value="">Välj projekt</option>';
-      projects.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.id;
-        opt.textContent = p.name || "Namnlöst projekt";
-        opt.dataset.name = p.name || "";
-        assignProject.appendChild(opt);
-      });
-      renderSubprojects();
-    }
-
-    function renderSubprojects() {
-      const pid = assignProject.value;
-      assignSubproject.innerHTML = '<option value="">Välj underprojekt</option>';
-      subProjects.filter(sp => !pid || sp.projectId === pid).forEach(sp => {
-        const opt = document.createElement("option");
-        opt.value = sp.id;
-        opt.textContent = sp.name || "Namnlöst";
-        opt.dataset.name = sp.name || "";
-        assignSubproject.appendChild(opt);
-      });
-    }
-
-    function loadUsers() {
-      return fetch("/admin/users", { headers: { Authorization: "Bearer " + (localStorage.getItem("token") || "") }})
-        .then(r => r.json())
-        .then(list => {
-          users = Array.isArray(list) ? list : [];
-          assignUser.innerHTML = '<option value="">Välj användare</option>';
-          users.forEach(u => {
-            const opt = document.createElement("option");
-            opt.value = u.id;
-            opt.textContent = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
-            assignUser.appendChild(opt);
-          });
-        })
-        .catch(() => { users = []; });
-    }
-
-    function loadAssignments() {
-      try {
-        assignments = JSON.parse(localStorage.getItem(ASSIGN_KEY) || "[]");
-      } catch { assignments = []; }
-    }
-
-    function saveAssignments() {
-      localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments));
-    }
+    const PROJECTS_KEY = "projects";
+    const SUBPROJECTS_KEY = "subProjects";
+    let projects = [];
+    let subprojects = [];
 
     function startOfWeek(date) {
       const d = new Date(date);
@@ -301,8 +319,99 @@
       return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 
-    function getAssignmentsForDate(dateStr) {
-      return assignments.filter(a => a.date === dateStr && (isAdminUser || a.userId === currentUser.id));
+    function between(isoDate, start, end) {
+      return isoDate >= start && isoDate <= end;
+    }
+
+    function userNameFor(plan) {
+      const inline = `${plan.first_name || ""} ${plan.last_name || ""}`.trim();
+      if (inline) return inline;
+      const found = users.find(u => String(u.id) === String(plan.user_id));
+      if (found) return `${found.first_name || ""} ${found.last_name || ""}`.trim() || found.email;
+      return plan.email || "Användare";
+    }
+
+    function plansForDate(dateStr) {
+      return plans.filter(p => between(dateStr, p.start_date, p.end_date));
+    }
+
+    function toggleModal(show) {
+      if (!planModal) return;
+      planModal.classList.toggle("show", show);
+    }
+
+    function setDefaultDates() {
+      const today = new Date();
+      const isoToday = toISO(today);
+      planStart.value = isoToday;
+      planEnd.value = isoToday;
+    }
+
+    async function loadUsers() {
+      if (!isAdminUser) return;
+      try {
+        const res = await fetch("/admin/users", {
+          headers: { Authorization: "Bearer " + token },
+        });
+        users = (await res.json()) || [];
+        planUser.innerHTML = '<option value="">Välj användare</option>';
+        users.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email;
+          planUser.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("Kunde inte ladda användare:", err);
+        users = [];
+      }
+    }
+
+    function loadProjectsFromLocal() {
+      try {
+        projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+        subprojects = JSON.parse(localStorage.getItem(SUBPROJECTS_KEY) || "[]");
+      } catch (e) {
+        projects = [];
+        subprojects = [];
+      }
+
+      planProject.innerHTML = '<option value="">Välj projekt</option>';
+      projects.forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.name || p.id || "";
+        opt.dataset.projectId = p.id || "";
+        opt.textContent = p.name || "Namnlöst projekt";
+        planProject.appendChild(opt);
+      });
+
+      renderSubprojects();
+    }
+
+    function renderSubprojects() {
+      const selectedProjectId = planProject.options[planProject.selectedIndex]?.dataset.projectId;
+      planSubproject.innerHTML = '<option value="">Välj underprojekt</option>';
+      subprojects
+        .filter((sp) => !selectedProjectId || String(sp.projectId) === String(selectedProjectId))
+        .forEach((sp) => {
+          const opt = document.createElement("option");
+          opt.value = sp.name || sp.id || "";
+          opt.textContent = sp.name || "Underprojekt";
+          planSubproject.appendChild(opt);
+        });
+    }
+
+    async function fetchPlans() {
+      try {
+        const res = await fetch("/plans", {
+          headers: { Authorization: "Bearer " + token },
+        });
+        if (!res.ok) throw new Error("kunde inte hämta planeringar");
+        plans = (await res.json()) || [];
+      } catch (err) {
+        console.error(err);
+        plans = [];
+      }
     }
 
     function renderTimeline() {
@@ -325,8 +434,8 @@
       for (let i = 0; i < totalDays; i++) {
         const dayDate = addDays(rangeStart, i);
         const iso = toISO(dayDate);
-        const dailyAssignments = getAssignmentsForDate(iso);
-        if (dailyAssignments.length) hasAssignments = true;
+        const dailyPlans = plansForDate(iso);
+        if (dailyPlans.length) hasAssignments = true;
 
         const cell = document.createElement("div");
         cell.className = "day-cell" + (iso === todayIso ? " today" : "");
@@ -337,10 +446,19 @@
 
         const list = document.createElement("div");
         list.className = "assignments";
-        dailyAssignments.forEach(a => {
+        dailyPlans.forEach(p => {
           const item = document.createElement("div");
           item.className = "assign-card";
-          item.innerHTML = `<strong>${a.projectName || "Projekt"}</strong><div class="sub">${a.userName || ""}${a.subProjectName ? " • " + a.subProjectName : ""}</div>`;
+          const userName = userNameFor(p);
+          const dest = p.destination ? ` • ${p.destination}` : "";
+          const tentative = Number(p.tentative) === 1;
+          item.innerHTML = `
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <strong>${p.project || "Projekt"}</strong>
+              ${tentative ? '<span class="badge yellow">Eventuellt</span>' : ""}
+            </div>
+            <div class="sub">${userName}${p.subproject ? " • " + p.subproject : ""}${dest}</div>
+          `;
           list.appendChild(item);
         });
 
@@ -351,26 +469,32 @@
       emptyPlanning.style.display = hasAssignments ? "none" : "block";
     }
 
-    function renderAssignList() {
-      assignList.innerHTML = "";
-      const sorted = [...assignments].sort((a,b) => (a.date || "").localeCompare(b.date || ""));
-      sorted.forEach(a => {
+    function renderPlanList() {
+      planList.innerHTML = "";
+      if (!plans.length) {
+        planList.innerHTML = '<div class="empty">Ingen planering ännu</div>';
+        return;
+      }
+      planListSubtitle.textContent = isAdminUser ? "Alla anställda och deras planeringar" : "Dina planeringar";
+      const sorted = [...plans].sort((a, b) => (a.start_date || "").localeCompare(b.start_date || ""));
+      sorted.forEach(p => {
         const card = document.createElement("div");
         card.className = "assign-card";
+        const userName = userNameFor(p);
+        const tentative = Number(p.tentative) === 1;
         card.innerHTML = `
-          <header>${a.date || "-"} • ${a.projectName || "Projekt"}</header>
-          <small>${a.userName || ""}${a.subProjectName ? " • " + a.subProjectName : ""}</small>
-          <div style="margin-top:6px; display:flex; gap:8px;">
-            <button type="button" class="btn-primary" style="background:#fee2e2; color:#b91c1c; border:none; padding:6px 10px; border-radius:10px;" data-id="${a.id}">Ta bort</button>
-          </div>
+          <header style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span>${p.project || "Projekt"}</span>
+            ${tentative ? '<span class="badge yellow">Eventuellt jobb</span>' : ""}
+          </header>
+          <small>${userName}${p.subproject ? " • " + p.subproject : ""}</small>
+          <div class="sub" style="margin-top:4px;">${p.start_date || ""} – ${p.end_date || ""}</div>
+          ${p.destination ? `<div class="sub">Plats: ${p.destination}</div>` : ""}
+          ${p.vehicle ? `<div class="sub">Fordon: ${p.vehicle}</div>` : ""}
+          ${p.contact_person || p.contact_phone ? `<div class="sub">Kontakt: ${[p.contact_person, p.contact_phone].filter(Boolean).join(" • ")}</div>` : ""}
+          ${p.notes ? `<div class="sub">${p.notes}</div>` : ""}
         `;
-        card.querySelector("button").addEventListener("click", () => {
-          assignments = assignments.filter(x => x.id !== a.id);
-          saveAssignments();
-          renderAssignList();
-          renderTimeline();
-        });
-        assignList.appendChild(card);
+        planList.appendChild(card);
       });
     }
 
@@ -395,52 +519,76 @@
       });
     });
 
-    assignProject.addEventListener("change", renderSubprojects);
+    if (openPlanModal) openPlanModal.addEventListener("click", () => toggleModal(true));
+    if (closePlanModal) closePlanModal.addEventListener("click", () => toggleModal(false));
+    if (cancelPlanBtn) cancelPlanBtn.addEventListener("click", () => toggleModal(false));
+    if (planModal) planModal.addEventListener("click", (e) => { if (e.target === planModal) toggleModal(false); });
 
-    assignForm.addEventListener("submit", (e) => {
+    planForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const date = assignDate.value;
-      const userId = assignUser.value;
-      const userObj = users.find(u => String(u.id) === String(userId));
-      const projectId = assignProject.value;
-      const projectName = assignProject.options[assignProject.selectedIndex]?.dataset.name || assignProject.options[assignProject.selectedIndex]?.textContent || "Projekt";
-      const subProjectId = assignSubproject.value;
-      const subProjectName = assignSubproject.options[assignSubproject.selectedIndex]?.dataset.name || assignSubproject.options[assignSubproject.selectedIndex]?.textContent || "";
+      if (!isAdminUser) {
+        alert("Endast admin kan skapa planeringar.");
+        return;
+      }
+      const body = {
+        user_id: planUser.value,
+        project: planProject.value.trim(),
+        subproject: planSubproject.value.trim(),
+        contact_person: planContact.value,
+        contact_phone: planContactPhone.value,
+        vehicle: planVehicle.value,
+        destination: planDestination.value,
+        start_date: planStart.value,
+        end_date: planEnd.value,
+        tentative: planTentative.checked,
+        notes: planNotes.value,
+      };
 
-      if (!date || !userId || !projectId) {
-        alert("Datum, användare och projekt krävs.");
+      if (!body.user_id || !body.project || !body.start_date || !body.end_date) {
+        alert("Användare, projekt och period krävs.");
         return;
       }
 
-      assignments.push({
-        id: crypto.randomUUID ? crypto.randomUUID() : "assign_" + Date.now(),
-        date,
-        userId,
-        userName: userObj ? `${userObj.first_name || ""} ${userObj.last_name || ""}`.trim() || userObj.email : "",
-        projectId,
-        projectName,
-        subProjectId,
-        subProjectName
-      });
-      saveAssignments();
-      renderAssignList();
-      renderTimeline();
-      assignForm.reset();
-      assignDate.value = new Date().toISOString().slice(0,10);
+      try {
+        const res = await fetch("/plans", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify(body),
+        });
+        const raw = await res.text();
+        let data = {};
+        try { data = JSON.parse(raw); } catch (_) {}
+        if (!res.ok) {
+          const msg = data.error || raw || `Kunde inte spara planeringen (HTTP ${res.status})`;
+          throw new Error(msg);
+        }
+        toggleModal(false);
+        planForm.reset();
+        setDefaultDates();
+        await fetchPlans();
+        renderPlanList();
+        renderTimeline();
+      } catch (err) {
+        console.error("Plan POST error:", err);
+        alert(err.message || "Kunde inte spara planeringen.");
+      }
     });
 
     // Init
-    assignDate.value = new Date().toISOString().slice(0,10);
-    loadProjects();
-    loadAssignments();
-    renderTimeline();
-    renderAssignList();
-    if (isAdminUser) {
-      loadUsers().then(() => {
-        renderAssignList();
-        renderTimeline();
-      });
-    }
+    setDefaultDates();
+    (async function init() {
+      loadProjectsFromLocal();
+      planProject.addEventListener("change", renderSubprojects);
+      if (isAdminUser) {
+        await loadUsers();
+      }
+      await fetchPlans();
+      renderPlanList();
+      renderTimeline();
+    })();
   </script>
 </body>
 </html>

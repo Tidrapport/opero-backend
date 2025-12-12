@@ -155,6 +155,41 @@ db.serialize(() => {
     );
   `);
 
+  // --- Planneringsuppdrag (admin skapar)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      project TEXT NOT NULL,
+      subproject TEXT,
+      contact_person TEXT,
+      contact_phone TEXT,
+      vehicle TEXT,
+      destination TEXT,
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      tentative INTEGER DEFAULT 0,
+      notes TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+  `);
+
+  // Lägg till subproject-kolumn om den saknas (migration)
+  db.all(`PRAGMA table_info(plans);`, (err, columns) => {
+    if (err) {
+      console.error("Kunde inte läsa schema för plans:", err);
+      return;
+    }
+    const hasSubproject = columns.some((c) => c.name === "subproject");
+    if (!hasSubproject) {
+      db.run(`ALTER TABLE plans ADD COLUMN subproject TEXT;`, (e) => {
+        if (e) console.error("Kunde inte lägga till subproject:", e);
+      });
+    }
+  });
+
   // Skapa admin‑användare om den inte finns
   const adminEmail = "edgar@test.se";
   const adminPasswordPlain = "1234";
