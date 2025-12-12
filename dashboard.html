@@ -170,7 +170,7 @@
     .ob-col-hours.ob-colored { color: #f97316; }
 
     /* Dölj adminlänkar i sidomenyn för användarvy */
-    .sidebar .admin-only { display: none !important; }
+    .non-admin .sidebar .admin-only { display: none !important; }
   </style>
 </head>
 <body>
@@ -183,6 +183,7 @@
       <a href="tidrapporter.html" class="nav-item">Tidrapporter</a>
       <a href="planning.html" class="nav-item">Planering</a>
       <a href="deviations.html" class="nav-item">Avvikelser</a>
+      <a href="svetsrapport.html" class="nav-item">Svetsrapport</a>
       <a href="salary-overview.html" class="nav-item">Lönöversikt</a>
       <a href="contacts.html" class="nav-item">Kontakter</a>
     </div>
@@ -288,6 +289,9 @@
   <script>
     const currentUser = requireLogin();
     setupSidebarForUser(currentUser);
+    if (!isAdmin(currentUser)) {
+      document.body.classList.add("non-admin");
+    }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("token");

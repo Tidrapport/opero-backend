@@ -152,4 +152,60 @@ function generatePassword(length = 10) {
 // ------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   ensureDefaultAdmin(); // påverkar bara localStorage-demot
+
+  // Lägg på ikoner i sidomenyn (monokroma/utan färg)
+  const iconStyleId = "nav-icon-style";
+  if (!document.getElementById(iconStyleId)) {
+    const style = document.createElement("style");
+    style.id = iconStyleId;
+    style.textContent = `
+      .sidebar .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        color: #e5e7eb;
+      }
+      .sidebar .nav-item .nav-icon {
+        font-size: 16px;
+        opacity: 0.9;
+        color: #e5e7eb;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        width: 18px;
+        min-width: 18px;
+        display: inline-flex;
+        justify-content: center;
+        text-align: center;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const icons = {
+    "Översikt": "⟳",          // modern dashboard/refresh symbol
+    "Tidrapporter": "⌚",      // watch/clock
+    "Planering": "🗓︎",       // calendar
+    "Avvikelser": "⚡",        // alert/issue
+    "Svetsrapport": "🧾︎",     // receipt/doc
+    "Lönöversikt": "¤",       // currency
+    "Kontakter": "👥︎",        // people
+    "Attestering": "✔︎",      // check
+    "Projekt": "🏗︎",         // crane/build
+    "Yrkesroller": "🛠︎",      // tools
+    "Materialtyper": "⬚",     // box/placeholder
+    "OB-inställningar": "⏱",  // stopwatch
+    "Användare": "👤︎",        // user
+  };
+
+  document.querySelectorAll(".sidebar .nav-item").forEach((link) => {
+    const text = (link.textContent || "").trim();
+    const icon = icons[text];
+    if (!icon) return;
+    if (link.querySelector(".nav-icon")) return;
+    const span = document.createElement("span");
+    span.className = "nav-icon";
+    span.textContent = icon;
+    link.insertBefore(span, link.firstChild);
+  });
 });
