@@ -58,15 +58,9 @@
 
     .main { flex: 1; padding: 24px 32px; }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .topbar h1 { margin: 0; font-size: 22px; }
-    .topbar small { color: #6b7280; }
+    .hero { background: linear-gradient(180deg, #fff, #f5f7fb); padding: 18px 20px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.05); margin-bottom: 14px; }
+    .hero h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; }
+    .hero p { margin: 4px 0 0; color: #64748b; font-size: 15px; }
     .welcome { font-size: 14px; color: #374151; }
 
     .page-header {
@@ -295,19 +289,9 @@
 
 <!-- MAIN -->
 <main class="main">
-  <div class="topbar">
-    <div>
-      <h1 id="companyTitle">Rail Work AB</h1>
-      <small>Rapportera avvikelser med text och bild</small>
-    </div>
-    <div class="welcome" id="welcomeText">Välkommen</div>
-  </div>
-
-  <div class="page-header">
-    <div>
-      <h2>Avvikelse­rapportering</h2>
-      <p>Dokumentera risker, fel och tillbud direkt från fältet.</p>
-    </div>
+  <div class="hero">
+    <h1>⚡ Avvikelser</h1>
+    <p>Dokumentera risker, fel och tillbud med bild och info.</p>
   </div>
 
   <div class="layout-grid">

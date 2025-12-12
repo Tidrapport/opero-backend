@@ -60,15 +60,9 @@
 
     .main { flex: 1; padding: 24px 32px; }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .topbar h1 { margin: 0; font-size: 22px; }
-    .topbar small { color: #6b7280; }
+    .hero { background: linear-gradient(180deg, #fff, #f5f7fb); padding: 18px 20px 12px; border-radius: 16px; box-shadow: 0 10px 30px rgba(15,23,42,0.05); margin-bottom: 14px; }
+    .hero h1 { margin: 0; font-size: 26px; display: flex; align-items: center; gap: 10px; }
+    .hero p { margin: 4px 0 0; color: #64748b; font-size: 15px; }
     .welcome { font-size: 14px; color: #374151; }
 
     .page-layout {
@@ -273,6 +267,12 @@
       margin: 0 2px;
     }
 
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 50; }
+    .modal-backdrop.show { display: flex; }
+    .modal { background: #fff; border-radius: 16px; width: min(1100px, 100%); max-height: 90vh; overflow: auto; padding: 18px; box-shadow: 0 25px 70px rgba(15,23,42,0.25); border: 1px solid #e2e8f0; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+
     /* Dölj adminlänkar i sidomenyn för användarvy */
     .non-admin .sidebar .admin-only { display: none !important; }
   </style>
@@ -306,18 +306,55 @@
 
   <!-- MAIN -->
   <main class="main">
-    <div class="topbar">
-      <div>
-        <h1>Tidrapport</h1>
-        <small>Registrera arbetad tid och materialförbrukning</small>
-      </div>
-      <div class="welcome" id="welcomeText">Välkommen</div>
+    <div class="hero">
+      <h1>⏱︎ Tidrapporter</h1>
+      <p>Registrera arbetad tid, OB och material i samma vy.</p>
     </div>
 
-    <div class="page-layout">
-      <!-- TIDRAPPORT-FORM -->
+    <div class="page-layout" style="grid-template-columns: 1fr;">
       <section class="card">
-        <h2>Ny tidrapport</h2>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div>
+            <h2>Ny tidrapport</h2>
+            <p style="margin:0; color:#64748b;">Skapa en ny tidrapport i dialogen.</p>
+          </div>
+          <button class="btn-primary" type="button" id="openReportModal">Skapa ny tidrapport</button>
+        </div>
+      </section>
+
+      <!-- ENKEL LISTA ÖVER SPARADE RAPPORTER (LOCALSTORAGE) -->
+      <section class="card">
+        <h2>Sparade rapporter (lokalt)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Projekt</th>
+              <th>Yrkesroll</th>
+              <th>Status</th>
+              <th>Traktamente</th>
+                <th>Restid (h)</th>
+              <th>Åtgärder</th>
+              <th>Materialrader</th>
+            </tr>
+          </thead>
+          <tbody id="reportsBody"></tbody>
+        </table>
+        <div id="noReports" class="badge-empty">
+          Inga rapporter sparade lokalt på denna enhet ännu.
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal for new report -->
+  <div class="modal-backdrop" id="reportModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 style="margin:0;">Ny tidrapport</h2>
+        <button class="btn-secondary" type="button" id="closeReportModal">✕</button>
+      </div>
+      <section>
         <form id="timeForm">
           <div class="field-group">
             <div class="field">
@@ -428,31 +465,8 @@
           </div>
         </form>
       </section>
-
-      <!-- ENKEL LISTA ÖVER SPARADE RAPPORTER (LOCALSTORAGE) -->
-      <section class="card">
-        <h2>Sparade rapporter (lokalt)</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Projekt</th>
-              <th>Yrkesroll</th>
-              <th>Status</th>
-              <th>Traktamente</th>
-                <th>Restid (h)</th>
-              <th>Åtgärder</th>
-              <th>Materialrader</th>
-            </tr>
-          </thead>
-          <tbody id="reportsBody"></tbody>
-        </table>
-        <div id="noReports" class="badge-empty">
-          Inga rapporter sparade lokalt på denna enhet ännu.
-        </div>
-      </section>
     </div>
-  </main>
+  </div>
 
   <script src="auth.js"></script>
   <script>
@@ -478,6 +492,9 @@
     const projectSelect = document.getElementById("projectSelect");
     const saveRestBtn = document.getElementById("saveRestBtn");
     const restInput = document.getElementById("restid");
+    const reportModal = document.getElementById("reportModal");
+    const openReportModalBtn = document.getElementById("openReportModal");
+    const closeReportModalBtn = document.getElementById("closeReportModal");
 
     let currentMaterials = [];
     let editingReportId = null;
@@ -524,28 +541,29 @@
       }
     }
 
-    function loadProjects() {
+    async function loadProjects() {
       let projects = [];
       try {
-        projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
-      } catch {
-        projects = [];
+        const res = await fetch("/projects", { headers: { Authorization: "Bearer " + (localStorage.getItem("token") || "") } });
+        if (res.ok) {
+          projects = await res.json();
+        }
+      } catch (_) {}
+      if (!Array.isArray(projects) || !projects.length) {
+        try {
+          projects = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]");
+        } catch { projects = []; }
       }
 
-      // Visa endast aktiva projekt om flagga finns, annars alla
       const activeProjects = projects.filter(p => p.active !== false);
-
-      projectSelect.innerHTML =
-        '<option value="">Välj projekt (läggs till av admin)</option>';
-
+      projectSelect.innerHTML = '<option value="">Välj projekt (läggs till av admin)</option>';
       activeProjects.forEach(p => {
         const opt = document.createElement("option");
-        opt.value = p.id;
+        opt.value = p.id || p.projectId || p.name || "";
         opt.textContent = p.name || "Namnlöst projekt";
         opt.dataset.name = p.name || "";
         projectSelect.appendChild(opt);
       });
-
       projectSelect.disabled = activeProjects.length === 0;
     }
 
@@ -903,6 +921,27 @@
     loadMaterialTypes();
     loadProjects();
 
+    // Modal hantering
+    function toggleReportModal(show) {
+      if (!reportModal) return;
+      const visible = !!show;
+      reportModal.classList.toggle("show", visible);
+      reportModal.style.display = visible ? "flex" : "none";
+      if (!visible) {
+        editingReportId = null;
+        currentMaterials = [];
+        renderMaterialsTable();
+        timeForm.reset();
+      }
+    }
+
+    if (openReportModalBtn) openReportModalBtn.addEventListener("click", () => {
+      setTodayDefaults();
+      toggleReportModal(true);
+    });
+    if (closeReportModalBtn) closeReportModalBtn.addEventListener("click", () => toggleReportModal(false));
+    if (reportModal) reportModal.addEventListener("click", (e) => { if (e.target === reportModal) toggleReportModal(false); });
+
     // ===== INITIALISERA SCROLL-TIDVÄLJARE =====
     function initTimePicker(pickerId, inputId) {
       const pickerEl = document.getElementById(pickerId);
@@ -1039,6 +1078,64 @@
 
     initTimePicker("startTimePicker", "start");
     initTimePicker("endTimePicker", "end");
+
+    function setTodayDefaults() {
+      const todayIso = new Date().toISOString().slice(0, 10);
+      const dateInput = document.getElementById("date");
+      if (dateInput) {
+        dateInput.value = todayIso;
+        dateInput.max = todayIso;
+      }
+      const rounded = (function () {
+        const now = new Date();
+        const minutes = now.getMinutes();
+        const roundedMinutes = Math.floor(minutes / 10) * 10;
+        return `${String(now.getHours()).padStart(2, "0")}:${String(roundedMinutes).padStart(2, "0")}`;
+      })();
+      const oneHourLater = (() => {
+        const [h, m] = rounded.split(":").map(Number);
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        d.setHours(d.getHours() + 1);
+        return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+      })();
+      setTimePickerValue("startTimePicker", "start", rounded);
+      setTimePickerValue("endTimePicker", "end", oneHourLater);
+    }
+
+    function setTimePickerValue(pickerId, inputId, timeStr) {
+      const [h, m] = (timeStr || "").split(":");
+      const pickerEl = document.getElementById(pickerId);
+      const inputEl = document.getElementById(inputId);
+      if (!pickerEl || !inputEl || !h || !m) return;
+      const hourOpt = pickerEl.querySelector(`.time-picker-option[data-value="${h}"]`);
+      const minOpt = pickerEl.querySelector(`.time-picker-option[data-value="${m}"]`);
+      const hoursScroll = pickerEl.querySelector(".time-picker-scroll:nth-child(2)") || pickerEl.querySelector(".time-picker-scroll");
+      const minsScroll = pickerEl.querySelector(".time-picker-scroll:nth-child(3)") || pickerEl.querySelectorAll(".time-picker-scroll")[1];
+      if (hourOpt && hoursScroll) {
+        hoursScroll.scrollTop = hourOpt.offsetTop - hoursScroll.clientHeight / 2 + hourOpt.clientHeight / 2;
+        hoursScroll.querySelectorAll(".time-picker-option").forEach(o => o.classList.remove("active"));
+        hourOpt.classList.add("active");
+      }
+      if (minOpt && minsScroll) {
+        minsScroll.scrollTop = minOpt.offsetTop - minsScroll.clientHeight / 2 + minOpt.clientHeight / 2;
+        minsScroll.querySelectorAll(".time-picker-option").forEach(o => o.classList.remove("active"));
+        minOpt.classList.add("active");
+      }
+      inputEl.value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      const display = pickerEl.querySelector(".time-picker-display");
+      if (display) display.textContent = inputEl.value;
+    }
+
+    if (openReportModalBtn) {
+      openReportModalBtn.addEventListener("click", () => {
+        setTodayDefaults();
+        toggleReportModal(true);
+      });
+    }
+    if (closeReportModalBtn) closeReportModalBtn.addEventListener("click", () => toggleReportModal(false));
+    if (reportModal) reportModal.addEventListener("click", (e) => { if (e.target === reportModal) toggleReportModal(false); });
+
 
     renderMaterialsTable();
     renderReportsList();
