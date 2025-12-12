@@ -250,6 +250,10 @@
       font-size: 13px;
       color: #4b5563;
     }
+
+    .non-admin .admin-only { display: none !important; }
+    /* Dölj adminlänkar i sidomenyn för användarvy */
+    .sidebar .admin-only { display: none !important; }
   </style>
 </head>
 <body>
@@ -271,7 +275,7 @@
     <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
     <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
     <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="planning.html" class="nav-item admin-only">Planering</a>
+    <a href="planning-admin.html" class="nav-item admin-only">Planering</a>
     <a href="admin-users.html" class="nav-item admin-only">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
@@ -374,6 +378,10 @@
   <script>
     const currentUser = requireLogin();
     setupSidebarForUser(currentUser);
+    if (!isAdmin(currentUser)) {
+      document.body.classList.add("non-admin");
+      document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
+    }
     const isAdminUser = isAdmin(currentUser);
     const token = localStorage.getItem("token") || "";
 

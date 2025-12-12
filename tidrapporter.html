@@ -272,6 +272,9 @@
       background: #e5e7eb;
       margin: 0 2px;
     }
+
+    /* Dölj adminlänkar i sidomenyn för användarvy */
+    .sidebar .admin-only { display: none !important; }
   </style>
 </head>
 <body>
@@ -294,7 +297,7 @@
     <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
     <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
     <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="planning.html" class="nav-item admin-only">Planering</a>
+    <a href="planning-admin.html" class="nav-item admin-only">Planering</a>
     <a href="admin-users.html" class="nav-item admin-only">Användare</a>
 
     <div class="logout" id="logoutBtn">⬅ Logga ut</div>
