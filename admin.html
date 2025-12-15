@@ -62,7 +62,7 @@
     .admin-submenu {
       display: none;
       position: absolute;
-      top: 40px;
+      top: calc(100% + 6px);
       left: 8px;
       min-width: 220px;
       background: #0b1220;
@@ -75,7 +75,7 @@
       gap: 8px;
       transform-origin: top left;
       transform: translateY(-6px) scale(0.98);
-      transition: opacity 140ms ease, transform 140ms ease;
+      transition: opacity 140ms ease, transform 140ms ease, top 160ms ease;
       opacity: 0;
     }
 
@@ -1252,6 +1252,60 @@
       const menu = parent.querySelector('.admin-submenu');
       if (menu) menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       if (isOpen) closeAllTooltips(parent);
+    });
+  });
+
+  // Adjust submenu vertical position to avoid overlapping active main items
+  function adjustSubmenuPosition(parent) {
+    const btn = parent.querySelector('.nav-section-toggle');
+    const menu = parent.querySelector('.admin-submenu');
+    if (!btn || !menu) return;
+
+    // Ensure menu is measurable
+    menu.style.display = 'flex';
+    menu.style.opacity = '0';
+
+    const parentRect = parent.getBoundingClientRect();
+    const btnRect = btn.getBoundingClientRect();
+    const menuHeight = menu.offsetHeight;
+
+    // Find an active top-level nav-item that is NOT inside a submenu
+    const activeMain = Array.from(document.querySelectorAll('.nav-item.active')).find((el) => !el.closest('.admin-submenu')) || null;
+
+    let desiredTop = btn.offsetTop + btn.offsetHeight + 6; // relative to parent (admin-hub)
+
+    if (activeMain) {
+      const activeRect = activeMain.getBoundingClientRect();
+      const activeTopRel = activeMain.offsetTop; // relative to sidebar
+      // If the menu would overlap the active item, push it below the active item
+      const menuBottom = desiredTop + menuHeight;
+      const activeTop = activeMain.offsetTop;
+      const activeBottom = activeTop + activeMain.offsetHeight;
+      if (menuBottom > activeTop && activeTop > btn.offsetTop) {
+        desiredTop = activeBottom + 8;
+      }
+    }
+
+    menu.style.top = desiredTop + 'px';
+    // restore visible state handled by open class; keep opacity to animate
+    requestAnimationFrame(() => {
+      menu.style.opacity = '';
+    });
+  }
+
+  // Run adjustment when opening via clicks and also on load for already-open hubs
+  document.querySelectorAll('.admin-hub').forEach((hub) => {
+    const btn = hub.querySelector('.nav-section-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (hub.classList.contains('open')) {
+        // give browser a tick to apply open styles then measure
+        setTimeout(() => adjustSubmenuPosition(hub), 40);
+      }
+    });
+    // Also adjust on hover for pointer devices
+    hub.addEventListener('mouseenter', () => {
+      if (hub.querySelector('.admin-submenu')) setTimeout(() => adjustSubmenuPosition(hub), 40);
     });
   });
 
