@@ -60,22 +60,23 @@
     .nav-section-toggle:hover { background: rgba(255,255,255,0.03); }
 
     .admin-submenu {
-      display: none;
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 8px;
-      min-width: 220px;
+      /* keep submenu in document flow so it pushes following items down */
+      display: flex;
+      position: relative;
+      left: 0;
+      min-width: 100%;
       background: #0b1220;
       color: #e5e7eb;
       border-radius: 10px;
-      padding: 10px;
+      padding: 8px 10px;
       box-shadow: 0 10px 30px rgba(2,6,23,0.6);
-      z-index: 40;
       flex-direction: column;
       gap: 8px;
+      max-height: 0;
+      overflow: hidden;
       transform-origin: top left;
-      transform: translateY(-6px) scale(0.98);
-      transition: opacity 140ms ease, transform 140ms ease, top 160ms ease;
+      transform: translateY(-6px);
+      transition: max-height 180ms ease, opacity 140ms ease, transform 140ms ease;
       opacity: 0;
     }
 
@@ -92,9 +93,9 @@
     }
 
     /* show on hover for pointer devices */
-    .admin-hub:hover .admin-submenu { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+    .admin-hub:hover .admin-submenu { max-height: 600px; opacity: 1; transform: translateY(0); }
     /* allow explicit open via JS for touch devices */
-    .admin-hub.open .admin-submenu { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+    .admin-hub.open .admin-submenu { max-height: 600px; opacity: 1; transform: translateY(0); }
 
     .admin-submenu .nav-item {
       padding: 10px 12px;
@@ -1255,59 +1256,7 @@
     });
   });
 
-  // Adjust submenu vertical position to avoid overlapping active main items
-  function adjustSubmenuPosition(parent) {
-    const btn = parent.querySelector('.nav-section-toggle');
-    const menu = parent.querySelector('.admin-submenu');
-    if (!btn || !menu) return;
-
-    // Ensure menu is measurable
-    menu.style.display = 'flex';
-    menu.style.opacity = '0';
-    const parentRect = parent.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    const menuHeight = menu.offsetHeight;
-
-    // Find an active top-level nav-item that is NOT inside a submenu
-    const activeMain = Array.from(document.querySelectorAll('.nav-item.active')).find((el) => !el.closest('.admin-submenu')) || null;
-
-    // Compute top relative to parent using viewport coords
-    let desiredTop = btnRect.bottom - parentRect.top + 6; // px
-
-    if (activeMain) {
-      const activeRect = activeMain.getBoundingClientRect();
-      const activeTopRel = activeRect.top - parentRect.top;
-      const activeBottomRel = activeRect.bottom - parentRect.top;
-      const menuBottomRel = desiredTop + menuHeight;
-
-      // If the menu would overlap the active item and active item is below the button, push menu below active item
-      if (menuBottomRel > activeTopRel && activeTopRel > (btnRect.top - parentRect.top)) {
-        desiredTop = activeBottomRel + 8;
-      }
-    }
-
-    menu.style.top = desiredTop + 'px';
-    // restore visible state handled by open class; keep opacity to animate
-    requestAnimationFrame(() => {
-      menu.style.opacity = '';
-    });
-  }
-
-  // Run adjustment when opening via clicks and also on load for already-open hubs
-  document.querySelectorAll('.admin-hub').forEach((hub) => {
-    const btn = hub.querySelector('.nav-section-toggle');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      if (hub.classList.contains('open')) {
-        // give browser a tick to apply open styles then measure
-        setTimeout(() => adjustSubmenuPosition(hub), 40);
-      }
-    });
-    // Also adjust on hover for pointer devices
-    hub.addEventListener('mouseenter', () => {
-      if (hub.querySelector('.admin-submenu')) setTimeout(() => adjustSubmenuPosition(hub), 40);
-    });
-  });
+  // Submenus are in-flow and will push following items down; no JS positioning required
 
   // Close tooltips when clicking outside
   document.addEventListener('click', (ev) => {
