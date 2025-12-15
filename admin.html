@@ -38,6 +38,73 @@
       margin-top: 12px;
     }
 
+    /* Adminhub dropdown */
+    .admin-hub {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .nav-section-toggle {
+      background: transparent;
+      border: none;
+      color: inherit;
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .nav-section-toggle:hover { background: rgba(255,255,255,0.03); }
+
+    .admin-submenu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      left: 8px;
+      min-width: 220px;
+      background: #0b1220;
+      color: #e5e7eb;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      z-index: 40;
+      flex-direction: column;
+      gap: 8px;
+      transform-origin: top left;
+      transform: translateY(-6px) scale(0.98);
+      transition: opacity 140ms ease, transform 140ms ease;
+      opacity: 0;
+    }
+
+    .admin-submenu::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 18px;
+      width: 12px;
+      height: 12px;
+      background: #0b1220;
+      transform: rotate(45deg);
+      box-shadow: -2px -2px 6px rgba(2,6,23,0.15);
+    }
+
+    /* show on hover for pointer devices */
+    .admin-hub:hover .admin-submenu { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+    /* allow explicit open via JS for touch devices */
+    .admin-hub.open .admin-submenu { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+
+    .admin-submenu .nav-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .nav-item {
       padding: 8px 10px;
       border-radius: 8px;
@@ -383,14 +450,33 @@
       <a href="contacts.html" class="nav-item">Kontakter</a>
   </div>
 
-  <div class="nav-section-title admin-only">Administration</div>
+    <div class="nav-section-title admin-only">Administration</div>
+    <div class="admin-hub admin-only">
+      <button class="nav-section-toggle" type="button" aria-expanded="false">Adminhub ▾</button>
+      <div class="admin-submenu">
+        <a href="job_roles.html" class="nav-item">Yrkesroller</a>
+        <a href="material_types.html" class="nav-item">Materialtyper</a>
+        <a href="ob_settings.html" class="nav-item">OB-inställningar</a>
+        <a href="admin-users.html" class="nav-item">Användare</a>
+      </div>
+    </div>
     <a href="admin.html" class="nav-item admin-only active">Attestering</a>
-    <a href="projects.html" class="nav-item admin-only">Projekt</a>
-    <a href="job_roles.html" class="nav-item admin-only">Yrkesroller</a>
-    <a href="material_types.html" class="nav-item admin-only">Materialtyper</a>
-    <a href="ob_settings.html" class="nav-item admin-only">OB-inställningar</a>
-    <a href="planning-admin.html" class="nav-item admin-only">Planering</a>
-    <a href="admin-users.html" class="nav-item admin-only">Användare</a>
+
+    <div class="admin-hub admin-only" style="position:relative;">
+      <button class="nav-section-toggle" type="button" aria-expanded="false" aria-controls="projectsTooltip">🏗️  Projekt ▾</button>
+      <div id="projectsTooltip" class="admin-submenu" role="menu" aria-hidden="true">
+        <a href="projects.html" class="nav-item" role="menuitem">🏗️  Alla projekt</a>
+        <a href="projects.html#create" class="nav-item" role="menuitem">✚ Skapa projekt</a>
+      </div>
+    </div>
+
+    <div class="admin-hub admin-only" style="position:relative;">
+      <button class="nav-section-toggle" type="button" aria-expanded="false" aria-controls="planningTooltip">📅  Planering ▾</button>
+      <div id="planningTooltip" class="admin-submenu" role="menu" aria-hidden="true">
+        <a href="planning.html" class="nav-item" role="menuitem">📅  Planera</a>
+        <a href="planning-admin.html" class="nav-item" role="menuitem">🛠️  Planering (admin)</a>
+      </div>
+    </div>
 
     <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
       <div class="view-toggle" style="justify-content:flex-start;">
@@ -1143,6 +1229,81 @@
   tableViewBtn?.addEventListener("click", () => setMobileMode(false));
   mobileViewBtnSidebar?.addEventListener("click", () => setMobileMode(true));
   tableViewBtnSidebar?.addEventListener("click", () => setMobileMode(false));
+
+  // Tooltip / submenu toggle for sidebar items (Adminhub, Projekt, Planering)
+  function closeAllTooltips(except = null) {
+    document.querySelectorAll('.admin-hub.open').forEach((el) => {
+      if (el === except) return;
+      el.classList.remove('open');
+      const btn = el.querySelector('.nav-section-toggle');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      const menu = el.querySelector('.admin-submenu');
+      if (menu) menu.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  document.querySelectorAll('.nav-section-toggle').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parent = btn.parentElement;
+      if (!parent) return;
+      const isOpen = parent.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      const menu = parent.querySelector('.admin-submenu');
+      if (menu) menu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      if (isOpen) closeAllTooltips(parent);
+    });
+  });
+
+  // Close tooltips when clicking outside
+  document.addEventListener('click', (ev) => {
+    closeAllTooltips();
+  });
+
+  // Close with Escape
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+      closeAllTooltips();
+    }
+  });
+
+  // Mark current page as active in sidebar and submenu
+  function highlightCurrentNav() {
+    const path = (window.location.pathname || '');
+    const currentFile = path.split('/').pop() || '';
+    const currentNoQuery = currentFile.split('?')[0].split('#')[0];
+    const currentNoExt = currentNoQuery.replace(/\.[^/.]+$/, '');
+
+    document.querySelectorAll('.nav-item').forEach((el) => {
+      const href = (el.getAttribute('href') || '').trim();
+      const hrefTarget = href.split('/').pop().split('?')[0].split('#')[0];
+      const hrefNoExt = hrefTarget.replace(/\.[^/.]+$/, '');
+
+      const matchExact = hrefTarget && currentNoQuery && hrefTarget === currentNoQuery;
+      const matchNoExt = hrefNoExt && currentNoExt && hrefNoExt === currentNoExt;
+      const matchContained = hrefTarget && currentNoQuery && (hrefTarget === '' ? false : currentNoQuery.indexOf(hrefNoExt) !== -1);
+      const matchReverseContained = hrefTarget && currentNoQuery && (hrefNoExt.indexOf(currentNoExt) !== -1);
+
+      const isMatch = matchExact || matchNoExt || matchContained || matchReverseContained;
+
+      if (isMatch) {
+        el.classList.add('active');
+        const parentHub = el.closest('.admin-hub');
+        if (parentHub) {
+          parentHub.classList.add('open');
+          const btn = parentHub.querySelector('.nav-section-toggle');
+          if (btn) btn.setAttribute('aria-expanded', 'true');
+          const menu = parentHub.querySelector('.admin-submenu');
+          if (menu) menu.setAttribute('aria-hidden', 'false');
+        }
+      } else {
+        el.classList.remove('active');
+      }
+    });
+  }
+
+  // Run once on load to reflect current page (works across admin pages)
+  highlightCurrentNav();
 
   document.getElementById("downloadPdfBtn").addEventListener("click", () => {
     const attested = reports.filter((r) => r.status === "Attesterad");
