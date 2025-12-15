@@ -1264,7 +1264,6 @@
     // Ensure menu is measurable
     menu.style.display = 'flex';
     menu.style.opacity = '0';
-
     const parentRect = parent.getBoundingClientRect();
     const btnRect = btn.getBoundingClientRect();
     const menuHeight = menu.offsetHeight;
@@ -1272,17 +1271,18 @@
     // Find an active top-level nav-item that is NOT inside a submenu
     const activeMain = Array.from(document.querySelectorAll('.nav-item.active')).find((el) => !el.closest('.admin-submenu')) || null;
 
-    let desiredTop = btn.offsetTop + btn.offsetHeight + 6; // relative to parent (admin-hub)
+    // Compute top relative to parent using viewport coords
+    let desiredTop = btnRect.bottom - parentRect.top + 6; // px
 
     if (activeMain) {
       const activeRect = activeMain.getBoundingClientRect();
-      const activeTopRel = activeMain.offsetTop; // relative to sidebar
-      // If the menu would overlap the active item, push it below the active item
-      const menuBottom = desiredTop + menuHeight;
-      const activeTop = activeMain.offsetTop;
-      const activeBottom = activeTop + activeMain.offsetHeight;
-      if (menuBottom > activeTop && activeTop > btn.offsetTop) {
-        desiredTop = activeBottom + 8;
+      const activeTopRel = activeRect.top - parentRect.top;
+      const activeBottomRel = activeRect.bottom - parentRect.top;
+      const menuBottomRel = desiredTop + menuHeight;
+
+      // If the menu would overlap the active item and active item is below the button, push menu below active item
+      if (menuBottomRel > activeTopRel && activeTopRel > (btnRect.top - parentRect.top)) {
+        desiredTop = activeBottomRel + 8;
       }
     }
 
